@@ -1136,8 +1136,10 @@ async function loadMatches(){
     buildLeagueFilter(m);
     renderMatches(m);
     settleBets();
+    return m;
   }catch(e){
     document.getElementById('matchesList').innerHTML='<div style="padding:16px;color:var(--r);font-size:12px;border-radius:7px;border:1px solid rgba(244,63,94,.18);background:rgba(244,63,94,.04)">Unable to load matches. Check connection and refresh.</div>';
+    return [];
   }
 }
 
@@ -1393,7 +1395,7 @@ function renderDetail(id,m,ai){
     savePrediction(m,ai);
     updateAiAccuracy();
   }else{
-    aiHtml='<div style="margin:0 12px 12px;padding:9px 11px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);font-size:11px;color:var(--t3);">AI analysis unavailable for this match.</div>';
+    aiHtml='<div style="margin:0 12px 12px;padding:9px 11px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);font-size:11px;color:var(--t3);">AI Analysis launching soon. Current version uses statistical models.</div>';
   }
   el.innerHTML=
     '<div class="detail-stats">'+
@@ -2125,6 +2127,7 @@ loadMatches().then(function(){ startLivePolling(); });
 renderSlip();
 renderMobSlip();
 updateUserStats();
+updateMyBetsNavCount();
 </script>
 
 <!-- LEGAL MODALS -->
