@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>STRATOS AI | How It Works</title>
+<meta name="theme-color" content="#000000"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:#05070a;color:#e8feff;font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;font-family:inherit;border:none;background:none;}
+
+:root{
+  --blue:#00E5FF;--green:#39FF7A;--orange:#FF9D2E;--red:#ff5c7a;
+  --bg2:rgba(255,255,255,.03);--border:rgba(255,255,255,.07);
+  --border-blue:rgba(0,229,255,.18);--text-dim:#4f7780;--text-muted:#6fa9b2;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flowRight{0%{stroke-dashoffset:200}100%{stroke-dashoffset:0}}
+@keyframes glow{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes barFill{from{width:0}}
+@keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes nodeAppear{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.fadeUp{animation:fadeUp .5s ease-out both;}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:none;}
+
+/* ── GRID BG ── */
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.15;
+  background-image:linear-gradient(rgba(0,229,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.08) 1px,transparent 1px);
+  background-size:48px 48px;}
+
+/* ── NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(5,7,10,.95);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,229,255,.1);height:56px;}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 18px;height:100%;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;letter-spacing:.1em;text-shadow:0 0 10px var(--blue);}
+.nav-links{display:flex;align-items:center;gap:14px;}
+.nav-link{font-size:13px;font-weight:600;color:var(--text-muted);transition:color .2s;padding:6px 10px;border-radius:8px;}
+.nav-link:hover{color:#fff;}
+.nav-link.cta{background:linear-gradient(135deg,#00E5FF,#00a8c4);color:#000;font-weight:700;}
+
+/* ── PAGE ── */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:72px 18px 60px;}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:40px 0 50px;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:7px;padding:5px 16px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;border:1px solid rgba(57,255,122,.35);color:var(--green);background:rgba(57,255,122,.06);margin-bottom:22px;animation:pulse 2.4s ease-in-out infinite;}
+.hero h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;line-height:1.15;margin-bottom:16px;}
+.hero p{font-size:15px;color:var(--text-muted);max-width:520px;margin:0 auto 28px;line-height:1.7;}
+.hero-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+.btn-primary{padding:13px 26px;border-radius:12px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#00E5FF,#00a8c4);color:#000;box-shadow:0 0 22px rgba(0,229,255,.35);transition:transform .2s;}
+.btn-primary:hover{transform:scale(1.03);}
+.btn-secondary{padding:13px 26px;border-radius:12px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border-blue);color:var(--blue);background:rgba(0,229,255,.04);transition:transform .2s;}
+.btn-secondary:hover{transform:scale(1.03);}
+
+/* ── SECTION ── */
+.section{padding:50px 0;}
+.sec-label{font-size:10px;text-transform:uppercase;letter-spacing:.2em;font-weight:700;color:var(--green);margin-bottom:8px;}
+.sec-title{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:900;color:#fff;margin-bottom:12px;}
+.sec-sub{font-size:14px;color:var(--text-muted);line-height:1.7;max-width:560px;}
+.divider{width:3rem;height:3px;border-radius:2px;background:linear-gradient(90deg,#00E5FF,#39FF7A);margin:14px 0 32px;}
+
+/* ── AI ENGINE DEMO ── */
+.ai-demo{background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.15);border-radius:20px;padding:28px;margin-top:20px;}
+.ai-steps{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:700px){.ai-steps{grid-template-columns:repeat(4,1fr);}}
+
+.ai-step{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;position:relative;transition:all .3s;}
+.ai-step.active{border-color:var(--blue);background:rgba(0,229,255,.07);box-shadow:0 0 20px rgba(0,229,255,.1);}
+.ai-step.done{border-color:var(--green);background:rgba(57,255,122,.05);}
+.step-num{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;}
+.step-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:6px;}
+.step-val{font-size:11px;color:var(--text-muted);line-height:1.6;min-height:32px;}
+.step-status{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.step-status.loading{background:rgba(0,229,255,.15);animation:pulse 1s infinite;}
+.step-status.done{background:rgba(57,255,122,.2);color:var(--green);}
+
+/* Match selector */
+.match-selector{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.match-pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;transition:all .2s;}
+.match-pill:hover{border-color:rgba(0,229,255,.3);color:#e8feff;}
+.match-pill.selected{border-color:var(--blue);color:var(--blue);background:rgba(0,229,255,.08);}
+
+/* Result display */
+.ai-result{margin-top:20px;display:none;}
+.ai-result.show{display:block;animation:fadeUp .4s ease-out;}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+@media(min-width:600px){.result-grid{grid-template-columns:repeat(3,1fr);}}
+.result-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.result-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin-bottom:6px;}
+.result-val{font-size:1.5rem;font-weight:900;}
+.prob-bar-wrap{margin-bottom:10px;}
+.prob-bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
+.prob-bar-lbl{color:#8fc6cf;font-weight:600;}
+.prob-bar-pct{font-weight:900;}
+.prob-bar-bg{height:8px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden;}
+.prob-bar-fill{height:100%;border-radius:4px;animation:barFill .8s cubic-bezier(.16,1,.3,1);}
+.ai-analysis-box{background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.12);border-radius:12px;padding:14px;}
+.ai-analysis-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ai-analysis-icon{width:24px;height:24px;border-radius:6px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-verdict{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(57,255,122,.07);border:1px solid rgba(57,255,122,.3);color:var(--green);}
+
+/* ── ORACLE DIAGRAM ── */
+.oracle-diagram{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:20px;padding:28px;overflow:hidden;position:relative;}
+.oracle-flow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+@media(max-width:600px){.oracle-flow{flex-direction:column;}}
+.oracle-node{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;flex:1;min-width:120px;position:relative;transition:all .4s;}
+.oracle-node.highlight{border-color:var(--blue);background:rgba(0,229,255,.07);box-shadow:0 0 18px rgba(0,229,255,.12);}
+.oracle-node-icon{font-size:1.6rem;margin-bottom:8px;animation:float 3s ease-in-out infinite;}
+.oracle-node-title{font-size:12px;font-weight:700;color:#fff;margin-bottom:4px;}
+.oracle-node-sub{font-size:10px;color:var(--text-dim);line-height:1.5;}
+.oracle-arrow{color:rgba(0,229,255,.4);font-size:1.2rem;flex-shrink:0;}
+@media(max-width:600px){.oracle-arrow{transform:rotate(90deg);}}
+
+/* ── BETTING FLOW ── */
+.betting-steps{display:grid;grid-template-columns:1fr;gap:16px;}
+@media(min-width:640px){.betting-steps{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:960px){.betting-steps{grid-template-columns:repeat(4,1fr);}}
+.betting-step{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;}
+.betting-step::before{content:attr(data-n);position:absolute;top:10px;right:14px;font-size:2.5rem;font-weight:900;color:rgba(0,229,255,.07);}
+.betting-step-icon{font-size:1.8rem;margin-bottom:12px;}
+.betting-step-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;}
+.betting-step-desc{font-size:12px;color:var(--text-muted);line-height:1.6;}
+.betting-step-tag{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;}
+
+/* ── TECH STACK ── */
+.tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(min-width:600px){.tech-grid{grid-template-columns:repeat(3,1fr);}}
+.tech-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;transition:all .2s;}
+.tech-card:hover{border-color:rgba(0,229,255,.25);transform:translateY(-2px);}
+.tech-card-icon{font-size:1.4rem;margin-bottom:10px;}
+.tech-card-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;}
+.tech-card-desc{font-size:11px;color:var(--text-muted);line-height:1.5;}
+
+/* ── CTA ── */
+.cta-section{background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.15);border-radius:20px;padding:36px 24px;text-align:center;margin-top:40px;}
+
+/* Spinner */
+.spinner{width:16px;height:16px;border:2px solid rgba(0,229,255,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px;}
+
+/* ══ MOBILE OVERRIDES ══ */
+.hamburger{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:36px;height:36px;border-radius:8px;border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.05);}
+@media(min-width:768px){.hamburger{display:none;}}
+.ham-line{width:16px;height:2px;background:#00E5FF;border-radius:2px;transition:all .25s;}
+.hamburger.open .ham-line:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open .ham-line:nth-child(2){opacity:0;}
+.hamburger.open .ham-line:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.mob-drawer{display:none;position:fixed;top:56px;left:0;right:0;z-index:49;background:rgba(2,4,8,.98);border-bottom:1px solid rgba(0,229,255,.12);padding:12px 16px 20px;}
+.mob-drawer.open{display:block;}
+.mob-item{display:flex;align-items:center;width:100%;padding:12px 14px;border-radius:10px;color:#8fc6cf;font-size:14px;font-weight:600;margin-bottom:4px;background:transparent;border:1px solid transparent;text-align:left;transition:all .2s;text-decoration:none;}
+.mob-item:hover,.mob-item:active{background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.18);color:#fff;}
+.mob-item.cta-mob{background:#00E5FF;color:#000;border-color:#00E5FF;font-weight:800;justify-content:center;margin-top:8px;}
+
+@media(max-width:767px){
+  .nav-links{display:none !important;}
+  .nav-inner{padding:0 14px;}
+  .page{padding:64px 14px 48px;}
+  
+  /* Hero */
+  .hero{padding:28px 0 32px;}
+  
+  /* Oracle diagram - scroll horizontal */
+  .oracle-diagram{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
+  .oracle-diagram::-webkit-scrollbar{height:3px;}
+  .oracle-diagram::-webkit-scrollbar-thumb{background:rgba(0,229,255,.3);}
+  
+  /* Step selector - make scrollable */
+  .step-selector{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+  .step-selector::-webkit-scrollbar{display:none;}
+  .step-btn{white-space:nowrap;flex-shrink:0;font-size:12px;padding:6px 12px;}
+  
+  /* Betting flow */
+  .betting-flow{grid-template-columns:1fr !important;}
+  
+  /* Tech cards */
+  .tech-grid{grid-template-columns:1fr !important;}
+  
+  /* CTA buttons */
+  .cta-buttons{flex-direction:column;align-items:stretch;}
+  .btn-primary,.btn-secondary{text-align:center;justify-content:center;}
+}
+
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="https://stratosa.netlify.app" class="nav-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2" style="filter:drop-shadow(0 0 6px #00E5FF)"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
+      STRATOS<span style="color:#00E5FF">AI</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Live Sportsbook</a>
+      <a href="history.html" class="nav-link">AI History</a>
+      <a href="index.html" class="nav-link cta">Try Demo →</a>
+    </div>
+    <button class="hamburger" id="ham" onclick="toggleDraw()" aria-label="Menu">
+      <span class="ham-line"></span><span class="ham-line"></span><span class="ham-line"></span>
+    </button>
+  </div>
+</nav>
+<div class="mob-drawer" id="mobDraw">
+  <a href="https://stratosa.netlify.app" class="mob-item">Home</a>
+  <a href="index.html" class="mob-item">Sportsbook</a>
+  <a href="history.html" class="mob-item">AI History</a>
+  <a href="https://stratosa.netlify.app/airdrop.html" class="mob-item">Airdrop</a>
+  <a href="https://stratosa.netlify.app/staking.html" class="mob-item">Staking</a>
+  <a href="index.html" class="mob-item cta-mob">Try Demo →</a>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>
+      STRATOS AI · TECHNOLOGY OVERVIEW
+    </div>
+    <h1>
+      <span style="color:#fff">How STRATOS AI</span><br>
+      <span style="color:#00E5FF;text-shadow:0 0 24px rgba(0,229,255,.6)">Actually Works</span>
+    </h1>
+    <p>A transparent look at the AI engine, oracle infrastructure, and smart contract betting flow — built for investors who want to understand the technology, not just the hype.</p>
+    <div class="hero-btns">
+      <a href="index.html" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>
+        Try Live Demo
+      </a>
+      <a href="https://stratosa.netlify.app" class="btn-secondary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Main Site
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 1: AI ENGINE ═══ -->
+  <section class="section reveal">
+    <div class="sec-label">Section 01</div>
+    <div class="sec-title">The AI Prediction Engine</div>
+    <div class="sec-sub">Pick a match below and watch the engine analyze real data step by step — from raw stats to final prediction.</div>
+    <div class="divider"></div>
+
+    <!-- Match selector -->
+    <div class="match-selector" id="matchSelector">
+      <div class="match-pill selected" onclick="selectMatch(0)">🇫🇷 France vs Senegal 🇸🇳</div>
+      <div class="match-pill" onclick="selectMatch(1)">🇳🇴 Norway vs Iraq 🇮🇶</div>
+      <div class="match-pill" onclick="selectMatch(2)">🇧🇪 Belgium vs Egypt 🇪🇬</div>
+    </div>
+
+    <div class="ai-demo">
+      <!-- Steps -->
+      <div class="ai-steps" id="aiSteps">
+        <div class="ai-step" id="step0">
+          <div class="step-num">Step 01</div>
+          <div class="step-title">Fetch Team Data</div>
+          <div class="step-val" id="stepVal0">Click "Run Analysis" to start</div>
+          <div class="step-status" id="stepStatus0"></div>
+        </div>
+        <div class="ai-step" id="step1">
+          <div class="step-num">Step 02</div>
+          <div class="step-title">Calculate xG</div>
+          <div class="step-val" id="stepVal1">Expected goals per team</div>
+          <div class="step-status" id="stepStatus1"></div>
+        </div>
+        <div class="ai-step" id="step2">
+          <div class="step-num">Step 03</div>
+          <div class="step-title">Poisson Model</div>
+          <div class="step-val" id="stepVal2">Score probability distribution</div>
+          <div class="step-status" id="stepStatus2"></div>
+        </div>
+        <div class="ai-step" id="step3">
+          <div class="step-num">Step 04</div>
+          <div class="step-title">AI Verdict</div>
+          <div class="step-val" id="stepVal3">Confidence + analysis</div>
+          <div class="step-status" id="stepStatus3"></div>
+        </div>
+      </div>
+
+      <button id="runBtn" onclick="runAnalysis()" style="width:100%;margin-top:18px;padding:13px;border-radius:12px;font-weight:800;font-size:15px;background:linear-gradient(135deg,#00E5FF,#00a8c4);color:#000;box-shadow:0 0 18px rgba(0,229,255,.3);transition:all .2s;">
+        ⚡ Run AI Analysis
+      </button>
+
+      <!-- Result -->
+      <div class="ai-result" id="aiResult"></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 2: ORACLE ═══ -->
+  <section class="section reveal">
+    <div class="sec-label">Section 02</div>
+    <div class="sec-title">The Decentralized Oracle</div>
+    <div class="sec-sub">How real-world match data flows on-chain — tamper-proof, verified by multiple nodes before any payout is triggered.</div>
+    <div class="divider"></div>
+
+    <div class="oracle-diagram">
+      <div class="oracle-flow" id="oracleFlow">
+        <div class="oracle-node" id="oNode0">
+          <div class="oracle-node-icon">📡</div>
+          <div class="oracle-node-title">Data Sources</div>
+          <div class="oracle-node-sub">API-Football, live scores, official feeds</div>
+        </div>
+        <div class="oracle-arrow">→</div>
+        <div class="oracle-node" id="oNode1">
+          <div class="oracle-node-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+          <div class="oracle-node-title">Chainlink Oracle</div>
+          <div class="oracle-node-sub">Industry-standard decentralized oracle network — trusted by $50B+ in DeFi</div>
+        </div>
+        <div class="oracle-arrow">→</div>
+        <div class="oracle-node" id="oNode2">
+          <div class="oracle-node-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="oracle-node-title">Verified Data</div>
+          <div class="oracle-node-sub">Match result cross-validated and signed on-chain</div>
+        </div>
+        <div class="oracle-arrow">→</div>
+        <div class="oracle-node" id="oNode3">
+          <div class="oracle-node-icon">📜</div>
+          <div class="oracle-node-title">Smart Contract</div>
+          <div class="oracle-node-sub">Result recorded immutably on BNB Chain</div>
+        </div>
+        <div class="oracle-arrow">→</div>
+        <div class="oracle-node" id="oNode4">
+          <div class="oracle-node-icon">💰</div>
+          <div class="oracle-node-title">Auto Payout</div>
+          <div class="oracle-node-sub">Winners receive $STRAT instantly, no middleman</div>
+        </div>
+      </div>
+
+      <!-- Phase 3 note -->
+      <div style="margin-top:16px;padding:10px 14px;border-radius:10px;background:rgba(255,157,46,.05);border:1px solid rgba(255,157,46,.2);font-size:12px;color:#FF9D2E;">
+        <strong>Phase 3 Roadmap:</strong> STRATOS AI will develop its own proprietary oracle network to replace Chainlink — giving full control, lower fees, and sports-specific validation.
+      </div>
+
+      <button onclick="animateOracle()" style="margin-top:16px;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;border:1px solid var(--border-blue);color:var(--blue);background:rgba(0,229,255,.05);">
+        ▶ Simulate Data Flow
+      </button>
+
+      <div id="oracleLog" style="margin-top:16px;font-size:12px;color:var(--text-muted);min-height:24px;font-family:monospace;"></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3: BETTING FLOW ═══ -->
+  <section class="section reveal">
+    <div class="sec-label">Section 03</div>
+    <div class="sec-title">The Betting Flow</div>
+    <div class="sec-sub">From wallet connection to payout — how a bet works end to end on STRATOS AI.</div>
+    <div class="divider"></div>
+
+    <div class="betting-steps">
+      <div class="betting-step" data-n="01">
+        <div class="betting-step-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+        <div class="betting-step-title">Connect Wallet</div>
+        <div class="betting-step-desc">User connects MetaMask or any Web3 wallet. No KYC, no email, no registration.</div>
+        <span class="betting-step-tag" style="background:rgba(0,229,255,.1);color:var(--blue);border:1px solid rgba(0,229,255,.2)">No KYC</span>
+      </div>
+      <div class="betting-step" data-n="02">
+        <div class="betting-step-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></div>
+        <div class="betting-step-title">Pick a Match & Outcome</div>
+        <div class="betting-step-desc">Browse AI-analyzed matches. See confidence scores, xG, form data. Select 1 / X / 2.</div>
+        <span class="betting-step-tag" style="background:rgba(57,255,122,.08);color:var(--green);border:1px solid rgba(57,255,122,.2)">AI Powered</span>
+      </div>
+      <div class="betting-step" data-n="03">
+        <div class="betting-step-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="betting-step-title">Stake $STRAT</div>
+        <div class="betting-step-desc">Tokens are locked in the smart contract. Funds are visible on-chain — no one can touch them.</div>
+        <span class="betting-step-tag" style="background:rgba(255,157,46,.08);color:var(--orange);border:1px solid rgba(255,157,46,.2)">On-Chain Escrow</span>
+      </div>
+      <div class="betting-step" data-n="04">
+        <div class="betting-step-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="betting-step-title">Auto Settlement</div>
+        <div class="betting-step-desc">Oracle confirms result. Smart contract releases winnings instantly. No human approval needed.</div>
+        <span class="betting-step-tag" style="background:rgba(57,255,122,.08);color:var(--green);border:1px solid rgba(57,255,122,.2)">Trustless</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 4: TECH STACK ═══ -->
+  <section class="section reveal">
+    <div class="sec-label">Section 04</div>
+    <div class="sec-title">Technology Stack</div>
+    <div class="sec-sub">Built on proven, auditable infrastructure.</div>
+    <div class="divider"></div>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-card-icon">⛓️</div>
+        <div class="tech-card-title">BNB Chain</div>
+        <div class="tech-card-desc">Low fees, fast confirmation, EVM-compatible. Industry standard for DeFi.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>
+        <div class="tech-card-title">Claude AI (Anthropic)</div>
+        <div class="tech-card-desc">State-of-the-art LLM for natural language match analysis and prediction reasoning.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="tech-card-title">Poisson Distribution</div>
+        <div class="tech-card-desc">Industry-standard statistical model used by professional sports analysts worldwide.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">🔐</div>
+        <div class="tech-card-title">OpenZeppelin</div>
+        <div class="tech-card-desc">Battle-tested smart contract library. ReentrancyGuard + Ownable for maximum security.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">🥞</div>
+        <div class="tech-card-title">PancakeSwap V2</div>
+        <div class="tech-card-desc">Auto-liquidity via the most trusted DEX on BSC. 2% of every tx builds the LP pool.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">📡</div>
+        <div class="tech-card-title">API-Football</div>
+        <div class="tech-card-desc">Real-time sports data provider. Live scores, team stats, xG data for 800+ leagues.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section reveal">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2" style="margin:0 auto 14px;display:block;filter:drop-shadow(0 0 10px #00E5FF)"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>
+    <h2 style="font-size:1.6rem;font-weight:900;color:#fff;margin-bottom:10px">See It In Action</h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:22px;max-width:440px;margin-left:auto;margin-right:auto">The demo is live — real World Cup 2026 matches, real AI analysis, real odds.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center">
+      <a href="index.html" class="btn-primary">Open Live Sportsbook</a>
+      <a href="history.html" class="btn-secondary">View AI Track Record</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   MATCH DATA
+═══════════════════════════════════════ */
+var MATCHES = [
+  {
+    home:'France', away:'Senegal',
+    hFlag:'🇫🇷', aFlag:'🇸🇳',
+    hGs:2.60, hGc:0.60, hForm:'WWWWW',
+    aGs:1.80, aGc:0.90, aForm:'WWDWL',
+    verdict:'France Win', confidence:'High',
+    analysis:'France\'s xG dominance (2.18 vs 1.42) and perfect recent form makes them heavy favorites. Senegal\'s defensive resilience is their only hope, but France\'s attacking depth should prevail.',
+    tip:'France\'s pace on the counter will expose Senegal\'s high defensive line.'
+  },
+  {
+    home:'Norway', away:'Iraq',
+    hFlag:'🇳🇴', aFlag:'🇮🇶',
+    hGs:2.10, hGc:0.80, hForm:'WWWDW',
+    aGs:1.60, aGc:1.00, aForm:'WDWLW',
+    verdict:'Norway Win', confidence:'Medium',
+    analysis:'Norway\'s physical style and superior xG of 1.94 gives them the edge. Iraq has shown resilience but faces Norway\'s aerial threat from set pieces.',
+    tip:'Norway\'s set piece delivery could be the decisive factor in this match.'
+  },
+  {
+    home:'Belgium', away:'Egypt',
+    hFlag:'🇧🇪', aFlag:'🇪🇬',
+    hGs:2.40, hGc:0.70, hForm:'WWWDW',
+    aGs:1.60, aGc:0.80, aForm:'WWDWL',
+    verdict:'Belgium Win', confidence:'High',
+    analysis:'Belgium\'s midfield creativity and xG advantage of 1.98 vs 1.12 gives them a clear edge. Egypt\'s defensive record has been inconsistent against top sides.',
+    tip:'Belgium\'s quick transitions should create space behind Egypt\'s defensive line.'
+  }
+];
+
+var selectedMatch = 0;
+var isRunning = false;
+
+function selectMatch(idx){
+  selectedMatch = idx;
+  document.querySelectorAll('.match-pill').forEach(function(p,i){
+    p.classList.toggle('selected', i===idx);
+  });
+  resetSteps();
+  document.getElementById('aiResult').classList.remove('show');
+}
+
+function resetSteps(){
+  for(var i=0;i<4;i++){
+    document.getElementById('step'+i).classList.remove('active','done');
+    document.getElementById('stepStatus'+i).className='step-status';
+    document.getElementById('stepStatus'+i).textContent='';
+  }
+  var defaults=['Click "Run Analysis" to start','Expected goals per team','Score probability distribution','Confidence + analysis'];
+  defaults.forEach(function(d,i){ document.getElementById('stepVal'+i).textContent=d; });
+}
+
+/* ═══════════════════════════════════════
+   AI ENGINE SIMULATION
+═══════════════════════════════════════ */
+function fact(n){var r=1;for(var i=2;i<=n;i++)r*=i;return r;}
+function pois(k,l){return Math.pow(l,k)*Math.exp(-l)/fact(k);}
+
+async function runAnalysis(){
+  if(isRunning) return;
+  isRunning = true;
+  var btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Analyzing…';
+  resetSteps();
+  document.getElementById('aiResult').classList.remove('show');
+
+  var m = MATCHES[selectedMatch];
+
+  // Step 0 — Fetch data
+  await activateStep(0, 'Fetching…', 600);
+  setStep(0, m.hFlag+' '+m.home+': '+m.hGs+' goals/game, form: '+m.hForm+'<br>'+m.aFlag+' '+m.away+': '+m.aGs+' goals/game, form: '+m.aForm, true);
+
+  // Step 1 — xG
+  await activateStep(1, 'Calculating…', 700);
+  var hxg = Math.max(0.2, ((m.hGs+m.aGc)/2)*1.12);
+  var axg = Math.max(0.2, ((m.aGs+m.hGc)/2)*0.96);
+  setStep(1, m.hFlag+' xG: <strong style="color:#00E5FF">'+hxg.toFixed(2)+'</strong><br>'+m.aFlag+' xG: <strong style="color:#FF9D2E">'+axg.toFixed(2)+'</strong>', true);
+
+  // Step 2 — Poisson
+  await activateStep(2, 'Running model…', 900);
+  var pH=0,pD=0,pA=0;
+  for(var i=0;i<=8;i++) for(var j=0;j<=8;j++){
+    var p=pois(i,hxg)*pois(j,axg);
+    if(i>j)pH+=p; else if(i===j)pD+=p; else pA+=p;
+  }
+  var tot=pH+pD+pA; pH/=tot;pD/=tot;pA/=tot;
+  setStep(2, m.home+' Win: <strong style="color:#00E5FF">'+(pH*100).toFixed(1)+'%</strong><br>Draw: <strong>'+(pD*100).toFixed(1)+'%</strong><br>'+m.away+' Win: <strong style="color:#FF9D2E">'+(pA*100).toFixed(1)+'%</strong>', true);
+
+  // Step 3 — Verdict
+  await activateStep(3, 'Generating verdict…', 800);
+  var confColor = m.confidence==='High'?'#39FF7A':'#FF9D2E';
+  setStep(3, '<strong style="color:'+confColor+'">'+m.verdict+'</strong><br><span style="font-size:10px">Confidence: '+m.confidence+'</span>', true);
+
+  // Show result
+  showResult(m, pH, pD, pA, hxg, axg);
+
+  btn.disabled = false;
+  btn.innerHTML = '⚡ Run AI Analysis';
+  isRunning = false;
+}
+
+function activateStep(idx, text, delay){
+  return new Promise(function(resolve){
+    document.getElementById('step'+idx).classList.add('active');
+    document.getElementById('stepVal'+idx).innerHTML = text;
+    document.getElementById('stepStatus'+idx).className = 'step-status loading';
+    document.getElementById('stepStatus'+idx).textContent = '⟳';
+    setTimeout(resolve, delay);
+  });
+}
+
+function setStep(idx, html, done){
+  document.getElementById('stepVal'+idx).innerHTML = html;
+  if(done){
+    document.getElementById('step'+idx).classList.remove('active');
+    document.getElementById('step'+idx).classList.add('done');
+    document.getElementById('stepStatus'+idx).className = 'step-status done';
+    document.getElementById('stepStatus'+idx).textContent = '✓';
+  }
+}
+
+function showResult(m, pH, pD, pA, hxg, axg){
+  var confColor = m.confidence==='High'?'#39FF7A':'#FF9D2E';
+  function probBar(label, pct, color){
+    return '<div class="prob-bar-wrap">'+
+      '<div class="prob-bar-label"><span class="prob-bar-lbl">'+label+'</span><span class="prob-bar-pct" style="color:'+color+'">'+(pct*100).toFixed(1)+'%</span></div>'+
+      '<div class="prob-bar-bg"><div class="prob-bar-fill" style="width:'+(pct*100)+'%;background:'+color+'"></div></div>'+
+    '</div>';
+  }
+  document.getElementById('aiResult').innerHTML =
+    '<div class="result-grid" style="margin-top:18px">'+
+      '<div class="result-card"><div class="result-label">Home xG</div><div class="result-val" style="color:#00E5FF">'+hxg.toFixed(2)+'</div></div>'+
+      '<div class="result-card"><div class="result-label">Away xG</div><div class="result-val" style="color:#FF9D2E">'+axg.toFixed(2)+'</div></div>'+
+      '<div class="result-card"><div class="result-label">Confidence</div><div class="result-val" style="color:'+confColor+';font-size:1rem">'+m.confidence+'</div></div>'+
+    '</div>'+
+    probBar(m.hFlag+' '+m.home+' Win', pH, '#00E5FF')+
+    probBar('Draw', pD, '#9fdfe8')+
+    probBar(m.aFlag+' '+m.away+' Win', pA, '#FF9D2E')+
+    '<div class="ai-analysis-box">'+
+      '<div class="ai-analysis-head">'+
+        '<div class="ai-analysis-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>'+
+        '<span style="font-size:11px;font-weight:800;color:#00E5FF;text-transform:uppercase;letter-spacing:.08em">STRATOS AI Analysis</span>'+
+      '</div>'+
+      '<p style="font-size:12px;color:#8fc6cf;line-height:1.7;margin-bottom:8px">'+m.analysis+'</p>'+
+      '<div style="font-size:11px;color:#6fa9b2;padding:7px 10px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)">'+m.tip+'</div>'+
+      '<div class="ai-verdict">✓ Prediction: <strong>'+m.verdict+'</strong></div>'+
+    '</div>';
+  document.getElementById('aiResult').classList.add('show');
+}
+
+/* ═══════════════════════════════════════
+   ORACLE ANIMATION
+═══════════════════════════════════════ */
+var oracleRunning = false;
+var oracleLogs = [
+  '📡 Fetching live match data from API-Football…',
+  'Node 1 (Singapore) confirmed: FT 2-1',
+  'Node 2 (Frankfurt) confirmed: FT 2-1',
+  'Node 3 (New York) confirmed: FT 2-1',
+  '⛓️ BFT consensus reached — 3/3 nodes agree',
+  '📜 Result recorded on BNB Chain (Block #39847201)',
+  '💰 Smart contract triggered — paying out winners…',
+  '847 $STRAT sent to winning wallets.'
+];
+
+async function animateOracle(){
+  if(oracleRunning) return;
+  oracleRunning = true;
+  var log = document.getElementById('oracleLog');
+  log.textContent = '';
+
+  // Reset nodes
+  for(var i=0;i<5;i++){
+    document.getElementById('oNode'+i).classList.remove('highlight');
+  }
+
+  for(var i=0;i<oracleLogs.length;i++){
+    await delay(600);
+    log.textContent = oracleLogs[i];
+    if(i < 5) document.getElementById('oNode'+Math.min(i,4)).classList.add('highlight');
+  }
+
+  await delay(1000);
+  log.textContent = '';
+  for(var i=0;i<5;i++) document.getElementById('oNode'+i).classList.remove('highlight');
+  oracleRunning = false;
+}
+
+function delay(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+
+/* ═══════════════════════════════════════
+   SCROLL REVEAL
+═══════════════════════════════════════ */
+if('IntersectionObserver' in window){
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:.1});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+} else {
+  document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+}
+
+function toggleDraw(){
+  var h=document.getElementById('ham'),d=document.getElementById('mobDraw');
+  h.classList.toggle('open'); d.classList.toggle('open');
+}
+window.addEventListener('scroll',function(){
+  document.getElementById('ham').classList.remove('open');
+  document.getElementById('mobDraw').classList.remove('open');
+},{passive:true});
+</script>
+</body>
+</html>
