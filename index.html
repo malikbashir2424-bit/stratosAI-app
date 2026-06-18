@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>STRATOS AI · Sportsbook</title>
-<meta name="description" content="AI-powered sports betting predictions. Real odds. Real analysis."/>
+<title>STRATOS AI · Sports Betting</title>
+<meta name="description" content="STRATOS AI — AI-powered sports betting. Real odds, real predictions, no KYC. Powered by $STRAT on BNB Chain."/>
 <meta name="theme-color" content="#0b0d13"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -278,6 +278,83 @@ input{font-family:inherit;}
   .user-stats{grid-template-columns:repeat(2,1fr);}
 }
 @media(max-width:380px){.team-name{font-size:10px;}.odd-val{font-size:11px;}}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:6px;}
+.search-input{width:100%;padding:9px 12px 9px 36px;border-radius:8px;background:var(--bg2);border:1px solid var(--line2);color:var(--t1);font-size:12px;outline:none;transition:border-color .15s;}
+.search-input:focus{border-color:var(--c);}
+.search-input::placeholder{color:var(--t3);}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none;}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:13px;cursor:pointer;display:none;-webkit-tap-highlight-color:transparent;}
+
+/* ODDS FORMAT */
+.odds-fmt-wrap{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.odds-fmt-lbl{font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.odds-fmt-btns{display:flex;gap:2px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:2px;}
+.ofb{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;color:var(--t3);cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+.ofb.active{background:var(--c);color:#000;}
+
+/* BET LIMITS */
+.bet-limits{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.limit-btn{padding:4px 8px;border-radius:5px;font-size:9px;font-weight:700;border:1px solid var(--line2);background:var(--bg2);color:var(--t2);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;}
+.limit-btn:hover{border-color:var(--c);color:var(--c);}
+
+/* ACCUMULATOR */
+.acca-summary{margin:6px 0;padding:8px 10px;border-radius:7px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);}
+.acca-title{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--p);text-transform:uppercase;margin-bottom:5px;}
+.acca-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
+.acca-lbl{color:var(--t2);}
+.acca-val{font-weight:800;color:var(--p);}
+.acca-boost{display:inline-flex;align-items:center;gap:3px;font-size:8px;font-weight:700;padding:1px 6px;border-radius:999px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--p);}
+
+/* CASH OUT */
+.cashout-btn{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:6px;padding:8px 10px;border-radius:7px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);font-size:11px;font-weight:700;color:var(--o);-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .15s;}
+.cashout-btn:hover{background:rgba(245,158,11,.13);}
+.cashout-val{font-size:13px;font-weight:900;}
+
+/* MY BETS PAGE */
+.mybets-overlay{position:fixed;inset:0;z-index:150;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;}
+.mybets-overlay.show{display:flex;}
+.mybets-header{position:sticky;top:0;z-index:10;background:rgba(11,13,19,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--line2);padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.mybets-back{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--t2);-webkit-tap-highlight-color:transparent;transition:color .15s;}
+.mybets-back:hover{color:var(--t1);}
+.mybets-title{font-size:15px;font-weight:800;color:var(--t1);flex:1;}
+.mybets-body{padding:16px;max-width:600px;margin:0 auto;width:100%;}
+.mybets-filter{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.mybets-filter::-webkit-scrollbar{display:none;}
+.mf-btn{padding:5px 12px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;cursor:pointer;border:1px solid var(--line2);background:var(--bg2);color:var(--t3);-webkit-tap-highlight-color:transparent;transition:all .15s;}
+.mf-btn.active{border-color:var(--c);background:rgba(0,200,255,.08);color:var(--c);}
+.mybets-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;}
+.mbs-cell{background:var(--bg1);border:1px solid var(--line);border-radius:8px;padding:10px 8px;text-align:center;}
+.mbs-val{font-size:16px;font-weight:900;line-height:1;}
+.mbs-lbl{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+.bet-card{background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;animation:fadeUp .2s ease-out;}
+.bet-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.bet-card-league{font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.bet-card-time{font-size:9px;color:var(--t3);}
+.bet-card-match{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;}
+.bet-card-pick{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+.bet-card-odds{font-size:13px;font-weight:900;color:var(--c);}
+.bet-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--line);}
+.bet-card-stake{font-size:10px;color:var(--t2);}
+
+/* FOOTER */
+.site-footer{background:#080a0f;border-top:1px solid var(--line2);padding:24px 16px 16px;margin-top:0;}
+.footer-inner{max-width:1360px;margin:0 auto;}
+.footer-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:16px;}
+.footer-brand{font-size:14px;font-weight:900;letter-spacing:.07em;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.footer-tagline{font-size:11px;color:var(--t3);line-height:1.6;max-width:220px;}
+.footer-links{display:flex;gap:28px;flex-wrap:wrap;}
+.footer-col-title{font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--t2);text-transform:uppercase;margin-bottom:8px;}
+.footer-link{display:block;font-size:11px;color:var(--t3);margin-bottom:5px;cursor:pointer;transition:color .15s;}
+.footer-link:hover{color:var(--t2);}
+.footer-bottom{border-top:1px solid var(--line);padding-top:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.footer-copy{font-size:10px;color:var(--t3);}
+.footer-rg{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--r);}
+
+/* AI ACC BADGE */
+.ai-acc-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:var(--g);background:rgba(0,232,122,.07);border:1px solid rgba(0,232,122,.18);border-radius:999px;padding:2px 8px;}
+
 </style>
 </head>
 <body>
@@ -300,20 +377,37 @@ input{font-family:inherit;}
   </div>
   <div class="tb-nav">
     <div class="tn active"><span class="tn-live-dot"></span>Upcoming</div>
+    <div class="tn" onclick="openMyBets()">My Bets <span id="myBetsNavCount" style="display:none;background:var(--o);color:#000;border-radius:999px;font-size:8px;font-weight:900;padding:0 5px;margin-left:2px"></span></div>
     <div class="tn" onclick="location.href='history.html'">AI Predictions</div>
     <div class="tn" onclick="location.href='demo.html'">How It Works</div>
-    <div class="tn" onclick="window.open('https://stratosa.netlify.app','_blank')">STRATOS Platform</div>
+    <div class="tn" onclick="window.open('https://stratosai.net','_blank')">STRATOS Platform</div>
   </div>
 </div>
 
 <div class="mob-drawer" id="mobDraw">
   <a href="history.html" class="mob-lnk">AI Prediction History</a>
   <a href="demo.html" class="mob-lnk">How It Works</a>
-  <a href="https://stratosa.netlify.app" target="_blank" class="mob-lnk" style="color:var(--c)">STRATOS Platform</a>
+  <a href="https://stratosai.net" target="_blank" class="mob-lnk" style="color:var(--c)">STRATOS Platform</a>
 </div>
 
 <div class="page">
   <div class="col-left">
+    <!-- Search -->
+    <div class="search-wrap">
+      <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" id="searchInput" type="text" placeholder="Search team or league…" oninput="onSearch(this.value)"/>
+      <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
+    </div>
+    <!-- Odds format -->
+    <div class="odds-fmt-wrap">
+      <span class="odds-fmt-lbl">Odds</span>
+      <div class="odds-fmt-btns">
+        <div class="ofb active" onclick="setOddsFormat('decimal',this)">Dec</div>
+        <div class="ofb" onclick="setOddsFormat('fractional',this)">Frac</div>
+        <div class="ofb" onclick="setOddsFormat('american',this)">US</div>
+      </div>
+    </div>
+    <!-- AI Accuracy badge -->
     <div class="user-stats">
       <div class="us-cell"><div class="us-val" id="us-bets" style="color:var(--c)">0</div><div class="us-lbl">Bets</div></div>
       <div class="us-cell"><div class="us-val" id="us-won" style="color:var(--g)">0</div><div class="us-lbl">Won</div></div>
@@ -329,6 +423,7 @@ input{font-family:inherit;}
       <span class="sec-live"></span>
       <span class="sec-lbl">Upcoming Matches</span>
       <span class="sec-count" id="matchCount">Loading…</span>
+      <span class="ai-acc-badge" id="aiAccBadge" style="display:none"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>AI <span id="aiAccPct">—</span></span>
     </div>
     <div class="matches-list" id="matchesList">
       <div class="skel"></div><div class="skel" style="height:56px"></div><div class="skel"></div>
@@ -669,7 +764,7 @@ function placeBet(sId){
   document.getElementById('toastBody').innerHTML='<strong style="color:#fff">'+picks+'</strong><br>Stake: <strong style="color:#fff">'+stake+' $STRAT</strong> · Win: <strong style="color:var(--g)">'+pot+' $STRAT</strong>';
   document.getElementById('toastOverlay').classList.add('show');
   S.betSlip.forEach(function(b){var btn=document.getElementById('ob-'+b.id+'-'+b.pick);if(btn)btn.classList.remove('sel');});
-  S.betSlip=[];renderSlip();renderMobSlip();updateUserStats();
+  S.betSlip=[];renderSlip();renderMobSlip();updateUserStats();updateMyBetsNavCount();
   if(S.activeTab==='bets')renderMyBets();if(S.mobTab==='bets')renderMobBets();
 }
 function closeToast(){document.getElementById('toastOverlay').classList.remove('show');}
@@ -751,8 +846,8 @@ function filterLeague(league,btn){
   renderMatches(league==='all'?S_ALL:S_ALL.filter(function(m){return m.league===league;}));
 }
 
-function shareMatch(h,a){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(h+' vs '+a+'\n\nSTRATOS AI prediction available now.\nstratosai-app.netlify.app\n\n#SportsBetting #Web3 $STRAT'),'_blank');}
-function shareAI(h,a,v,c){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent('STRATOS AI: '+h+' vs '+a+'\nPrediction: '+v+' ('+c+' confidence)\n\nstratosai-app.netlify.app\n\n#SportsBetting #Web3 $STRAT'),'_blank');}
+function shareMatch(h,a){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(h+' vs '+a+'\n\nSTRATOS AI prediction available now.\nstratosai.bet\n\n#SportsBetting #Web3 $STRAT'),'_blank');}
+function shareAI(h,a,v,c){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent('STRATOS AI: '+h+' vs '+a+'\nPrediction: '+v+' ('+c+' confidence)\n\nstratosai.bet\n\n#SportsBetting #Web3 $STRAT'),'_blank');}
 
 function toggleMobSlip(){var bs=document.getElementById('mobBs');var bd=document.getElementById('mobBsBackdrop');bs.classList.toggle('open');bd.style.display=bs.classList.contains('open')?'block':'none';document.body.style.overflow=bs.classList.contains('open')?'hidden':'';}
 function closeMobSlip(){var bs=document.getElementById('mobBs');var bd=document.getElementById('mobBsBackdrop');bs.classList.remove('open');bd.style.display='none';document.body.style.overflow='';}
@@ -778,11 +873,250 @@ function connectWalletConnect(){var n=document.getElementById('wNotConnected');n
 function disconnectWallet(){W.connected=false;W.address=null;document.getElementById('walletBtn').classList.remove('connected');document.getElementById('walletBtnText').textContent='Connect Wallet';closeWallet();}
 if(typeof window.ethereum!=='undefined'){window.ethereum.request({method:'eth_accounts'}).then(function(accounts){if(accounts.length)setConnected(accounts[0]);}).catch(function(){});window.ethereum.on('accountsChanged',function(accounts){if(accounts.length)setConnected(accounts[0]);else disconnectWallet();});}
 
+
+/* ══ ODDS FORMAT ══ */
+var ODDS_FMT='decimal';
+var BET_MIN=10,BET_MAX=10000;
+
+function setOddsFormat(fmt,btn){
+  ODDS_FMT=fmt;
+  document.querySelectorAll('.ofb').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  document.querySelectorAll('.odd').forEach(function(el){
+    var raw=parseFloat(el.dataset.raw);
+    if(!raw)return;
+    el.querySelector('.odd-val').textContent=fmtOdds(raw);
+  });
+  renderSlip();renderMobSlip();
+}
+
+function fmtOdds(decimal){
+  if(ODDS_FMT==='decimal')return decimal.toFixed(2);
+  if(ODDS_FMT==='fractional'){var num=decimal-1,denom=1;while(Math.round(num*denom)!==num*denom&&denom<100)denom++;return Math.round(num*denom)+'/'+denom;}
+  if(ODDS_FMT==='american'){if(decimal>=2)return '+'+Math.round((decimal-1)*100);return '-'+Math.round(100/(decimal-1));}
+  return decimal.toFixed(2);
+}
+
+/* ══ SEARCH ══ */
+function onSearch(val){
+  var clear=document.getElementById('searchClear');
+  if(clear)clear.style.display=val?'block':'none';
+  if(!val.trim()){renderMatches(S_ALL);return;}
+  var q=val.toLowerCase();
+  renderMatches(S_ALL.filter(function(m){return m.home.toLowerCase().includes(q)||m.away.toLowerCase().includes(q)||m.league.toLowerCase().includes(q);}));
+}
+function clearSearch(){
+  var input=document.getElementById('searchInput'),clear=document.getElementById('searchClear');
+  if(input)input.value='';if(clear)clear.style.display='none';
+  renderMatches(S_ALL);
+}
+
+/* ══ STAKE LIMITS ══ */
+function setStakeLimit(val,sid){var el=document.getElementById(sid);if(el){el.value=val;updatePot(sid,sid==='stakeD'?'potD':'potM');}}
+
+/* ══ CASH OUT ══ */
+function calcCashOut(bet){
+  if(!bet||!bet.odds||bet.settled)return null;
+  var elapsed=(new Date()-new Date(bet.kickoff))/60000;
+  if(elapsed<0||elapsed>95)return null;
+  return parseFloat((bet.stake*0.9).toFixed(2));
+}
+function doCashOut(betId){
+  var bets=loadBets(),idx=bets.findIndex(function(b){return b.betId===betId;});
+  if(idx<0)return;
+  var coVal=calcCashOut(bets[idx]);if(coVal===null)return;
+  bets[idx].settled=true;bets[idx].won=true;bets[idx].cashOut=true;bets[idx].potentialWin=coVal;bets[idx].result='CO';
+  saveBets(bets);updateUserStats();
+  document.getElementById('toastBody').innerHTML='Cash out: <strong style="color:var(--o)">'+coVal+' $STRAT</strong>';
+  document.getElementById('toastOverlay').classList.add('show');
+  if(document.getElementById('myBetsOverlay').classList.contains('show'))renderMyBetsPage(MB_FILTER);
+}
+
+/* ══ ACCUMULATOR ══ */
+function accaBonus(count){if(count<3)return 0;if(count===3)return 5;if(count===4)return 10;return 15;}
+
+/* ══ MY BETS PAGE ══ */
+var MB_FILTER='all';
+function openMyBets(){renderMyBetsPage(MB_FILTER);document.getElementById('myBetsOverlay').classList.add('show');document.body.style.overflow='hidden';}
+function closeMyBets(){document.getElementById('myBetsOverlay').classList.remove('show');document.body.style.overflow='';}
+function filterMyBets(f,btn){MB_FILTER=f;document.querySelectorAll('.mf-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderMyBetsPage(f);}
+function clearAllBets(){if(!confirm('Clear all bet history?'))return;saveBets([]);updateUserStats();renderMyBetsPage('all');updateMyBetsNavCount();}
+function updateMyBetsNavCount(){
+  var pending=loadBets().filter(function(b){return !b.settled;});
+  var el=document.getElementById('myBetsNavCount');
+  if(el){if(pending.length){el.textContent=pending.length;el.style.display='inline';}else{el.style.display='none';}}
+}
+function renderMyBetsPage(filter){
+  var bets=loadBets();
+  var settled=bets.filter(function(b){return b.settled;}),won=settled.filter(function(b){return b.won&&!b.cashOut;}),lost=settled.filter(function(b){return !b.won;}),pending=bets.filter(function(b){return !b.settled;});
+  var wr=settled.length?((won.length/settled.length)*100).toFixed(0)+'%':'—';
+  var totalStaked=bets.reduce(function(a,b){return a+(b.stake||0);},0);
+  document.getElementById('mbStatGrid').innerHTML=
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--c)">'+bets.length+'</div><div class="mbs-lbl">Total</div></div>'+
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--g)">'+won.length+'</div><div class="mbs-lbl">Won</div></div>'+
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--g)">'+wr+'</div><div class="mbs-lbl">Win Rate</div></div>'+
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--o)">'+totalStaked.toFixed(0)+'</div><div class="mbs-lbl">Staked</div></div>';
+  var filtered=filter==='pending'?pending:filter==='won'?won:filter==='lost'?lost:bets;
+  if(!filtered.length){document.getElementById('mbBetList').innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">No '+filter+' bets.</div>';return;}
+  document.getElementById('mbBetList').innerHTML=filtered.map(function(b){
+    var sc=b.settled?(b.won?'bi-won':'bi-lost'):'bi-pend';
+    var st=b.settled?(b.won?(b.cashOut?'Cashed Out':'Won'):'Lost'):'Pending';
+    var coVal=calcCashOut(b);
+    var safeId=String(b.betId).replace(/'/g,'');
+    var coBtn=(!b.settled&&coVal)?'<button class="cashout-btn" onclick="doCashOut(\'' + safeId + '\')"><span>Cash Out</span><span class="cashout-val">'+coVal+' $STRAT</span></button>':'';
+    var diff=(Date.now()-new Date(b.timestamp))/1000;
+    var ago=diff<60?'Just now':diff<3600?Math.floor(diff/60)+'m ago':diff<86400?Math.floor(diff/3600)+'h ago':Math.floor(diff/86400)+'d ago';
+    return '<div class="bet-card">'+
+      '<div class="bet-card-head"><span class="bet-card-league">'+(b.league||'Match')+'</span><span class="bet-card-time">'+ago+'</span></div>'+
+      '<div class="bet-card-match">'+b.match+'</div>'+
+      '<div class="bet-card-pick"><span style="font-size:11px;color:var(--t2)">'+b.label+' ('+b.pick+')</span><span style="flex:1"></span><span class="bet-card-odds">'+fmtOdds(b.odds)+'</span><span class="bi-badge '+sc+'" style="margin-left:6px">'+st+'</span></div>'+
+      coBtn+
+      '<div class="bet-card-footer"><span class="bet-card-stake">Stake: <strong style="color:var(--t1)">'+b.stake+' $STRAT</strong></span><span style="font-size:11px;font-weight:700;color:'+(b.settled?(b.won?'var(--g)':'var(--r)'):'var(--o)')+'">'+( b.settled?(b.won?'+'+b.potentialWin:'-'+b.stake):b.potentialWin+' potential')+'</span></div>'+
+      (b.finalScore?'<div style="font-size:9px;color:var(--t3);margin-top:4px">Final: '+b.finalScore+'</div>':'')+
+    '</div>';
+  }).join('');
+}
+
+/* ══ LEGAL ══ */
+var LEGAL={
+  terms:{title:'Terms of Service',html:'<strong>1. Overview</strong><p>STRATOS AI is a decentralized sports prediction platform in demo mode. No real funds are used.</p><strong>2. Eligibility</strong><p>You must be 18+ to use this platform.</p><strong>3. Demo Mode</strong><p>All bets are demo only. $STRAT wagering launches after presale.</p><strong>4. Risk</strong><p>Sports betting involves risk. Only bet what you can afford to lose.</p>'},
+  privacy:{title:'Privacy Policy',html:'<strong>1. Data</strong><p>We collect minimal data. No KYC required in demo mode.</p><strong>2. Local Storage</strong><p>All bet history is stored locally on your device only.</p><strong>3. Wallet</strong><p>We only see your public address. Never share your private keys.</p>'},
+  rg:{title:'Responsible Gambling',html:'<div style="background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);border-radius:8px;padding:12px;margin-bottom:12px;"><strong style="color:var(--r)">Important</strong><p style="margin-top:4px">Gambling can be addictive. If you have a gambling problem, please seek help immediately.</p></div><strong>Get Help</strong><p>National Problem Gambling Helpline: 1-800-522-4700</p><p>BeGambleAware: www.begambleaware.org</p>'}
+};
+function openLegal(type){var l=LEGAL[type];document.getElementById('legalTitle').textContent=l.title;document.getElementById('legalBody').innerHTML=l.html;document.getElementById('legalOverlay').style.display='flex';}
+function closeLegalModal(){document.getElementById('legalOverlay').style.display='none';}
+
+/* ══ OVERRIDE oddBtn — add data-raw ══ */
+function oddBtn(mId,pick,label,val){
+  return '<div class="odd" id="ob-'+mId+'-'+pick+'" data-raw="'+val+'" onclick="selectOdd(event,'+mId+',\''+pick+'\',\''+label+'\','+val+')"><span class="odd-lbl">'+label+'</span><span class="odd-val">'+fmtOdds(val)+'</span></div>';
+}
+
+/* ══ OVERRIDE slipHTML — acca + limits ══ */
+function slipHTML(sid,pid){
+  if(!S.betSlip.length)return '<div class="bs-empty">Select odds to build your slip</div>';
+  var tot=S.betSlip.reduce(function(a,b){return a*b.odds;},1);
+  var bonus=accaBonus(S.betSlip.length),boosted=tot*(1+bonus/100);
+  var stake=100,pot=(stake*boosted).toFixed(2);
+  var items=S.betSlip.map(function(b){return '<div class="bs-item"><button class="bs-remove" onclick="removeBetFromSlip('+b.id+')">✕</button><div class="bs-item-match">'+b.match+'</div><div class="bs-item-pick">'+b.label+' <span style="font-size:9px;color:var(--t3)">('+b.pick+')</span></div><div class="bs-item-odds">'+fmtOdds(b.odds)+'</div></div>';}).join('');
+  var accaHtml=bonus?'<div class="acca-summary"><div class="acca-title">Accumulator <span class="acca-boost">+'+bonus+'% Bonus</span></div><div class="acca-row"><span class="acca-lbl">Base odds</span><span style="color:var(--t2)">'+tot.toFixed(2)+'</span></div><div class="acca-row"><span class="acca-lbl">Boosted odds</span><span class="acca-val">'+boosted.toFixed(2)+'</span></div></div>':'';
+  return items+accaHtml+
+    '<input id="'+sid+'" class="bs-stake" type="number" min="'+BET_MIN+'" max="'+BET_MAX+'" placeholder="Stake ($STRAT)" value="'+stake+'" oninput="updatePot(\''+sid+'\',\''+pid+'\')" style="margin-top:8px">'+
+    '<div class="bet-limits"><button class="limit-btn" onclick="setStakeLimit('+BET_MIN+',\''+sid+'\')">Min</button><button class="limit-btn" onclick="setStakeLimit(100,\''+sid+'\')">100</button><button class="limit-btn" onclick="setStakeLimit(500,\''+sid+'\')">500</button><button class="limit-btn" onclick="setStakeLimit('+BET_MAX+',\''+sid+'\')">Max</button></div>'+
+    '<div class="bs-summary" style="margin-top:8px"><div class="bs-srow"><span class="bs-slbl">Selections</span><span class="bs-sval">'+S.betSlip.length+'</span></div><div class="bs-srow"><span class="bs-slbl">Total odds</span><span class="bs-sval">'+boosted.toFixed(2)+(bonus?'<span style="font-size:8px;color:var(--p);margin-left:3px">+'+bonus+'%</span>':'')+'</span></div><div class="bs-srow" style="border-top:1px solid var(--line);padding-top:5px;margin-top:3px"><span class="bs-slbl">Potential win</span><span class="bs-pot" id="'+pid+'">'+pot+' $STRAT</span></div></div>'+
+    '<button class="bs-place" onclick="placeBet(\''+sid+'\')">Place Demo Bet</button>'+
+    '<div class="bs-disclaimer">Demo · Min '+BET_MIN+' · Max '+BET_MAX+' $STRAT</div>';
+}
+
+/* ══ OVERRIDE updatePot — acca aware ══ */
+function updatePot(sid,pid){
+  var stake=parseFloat(document.getElementById(sid).value)||0;
+  var tot=S.betSlip.reduce(function(a,b){return a*b.odds;},1);
+  var boosted=tot*(1+accaBonus(S.betSlip.length)/100);
+  var el=document.getElementById(pid);if(el)el.textContent=(stake*boosted).toFixed(2)+' $STRAT';
+}
+
+/* ══ OVERRIDE updateAiAccuracy — show badge ══ */
+function updateAiAccuracy(){
+  try{
+    var preds=JSON.parse(localStorage.getItem(LS_PREDS)||'[]');
+    var sp=preds.filter(function(p){return p.settled;}),wp=sp.filter(function(p){return p.won;});
+    if(!sp.length)return;
+    var acc=Math.round((wp.length/sp.length)*100)+'%';
+    document.getElementById('us-ai').textContent=acc;
+    var badge=document.getElementById('aiAccBadge'),pct=document.getElementById('aiAccPct');
+    if(badge)badge.style.display='inline-flex';if(pct)pct.textContent=acc;
+  }catch(e){}
+}
+
 /* INIT */
 loadMatches().then(function(){startLivePolling();});
 renderSlip();
 renderMobSlip();
 updateUserStats();
+updateMyBetsNavCount();
 </script>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">
+          <div style="width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#00c8ff,#0062ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>
+          STRATOS<span style="color:var(--c)">AI</span>
+        </div>
+        <div class="footer-tagline">AI-powered sports betting. No KYC. No bank. Just your wallet.</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <a href="https://x.com/stratosaig" target="_blank" style="width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--t3);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <a href="https://t.me/stratosAi_official" target="_blank" style="width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--t3);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.7 8c-.12.54-.46.67-.93.42l-2.58-1.9-1.24 1.19c-.14.14-.25.25-.51.25l.18-2.61 4.7-4.24c.2-.18-.05-.28-.32-.1L7.27 14.4l-2.52-.79c-.55-.17-.56-.55.12-.81l9.82-3.79c.46-.17.86.11.95.79z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div>
+          <div class="footer-col-title">Platform</div>
+          <span class="footer-link" onclick="location.href='history.html'">AI Predictions</span>
+          <span class="footer-link" onclick="location.href='demo.html'">How It Works</span>
+          <span class="footer-link" onclick="window.open('https://stratosai.net','_blank')">Main Site</span>
+        </div>
+        <div>
+          <div class="footer-col-title">Legal</div>
+          <span class="footer-link" onclick="openLegal('terms')">Terms of Service</span>
+          <span class="footer-link" onclick="openLegal('privacy')">Privacy Policy</span>
+          <span class="footer-link" onclick="openLegal('rg')">Responsible Gambling</span>
+        </div>
+        <div>
+          <div class="footer-col-title">Blockchain</div>
+          <div style="font-size:10px;color:var(--t3);display:flex;align-items:center;gap:4px;margin-bottom:5px;"><span style="width:5px;height:5px;border-radius:50%;background:var(--o);"></span>BNB Chain</div>
+          <span class="footer-link" onclick="window.open('https://bscscan.com','_blank')">BSCScan</span>
+          <span class="footer-link" onclick="window.open('https://stratosai.net','_blank')">Whitepaper</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 STRATOS AI · stratosai.bet · Demo version</div>
+      <div class="footer-rg">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        18+ · Gamble Responsibly
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- MY BETS PAGE -->
+<div class="mybets-overlay" id="myBetsOverlay">
+  <div class="mybets-header">
+    <button class="mybets-back" onclick="closeMyBets()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back
+    </button>
+    <span class="mybets-title">My Bets</span>
+    <button onclick="clearAllBets()" style="font-size:10px;color:var(--r);font-weight:600;padding:4px 8px;border-radius:5px;border:1px solid rgba(244,63,94,.2);background:transparent;">Clear All</button>
+  </div>
+  <div class="mybets-body">
+    <div class="mybets-stat-grid" id="mbStatGrid"></div>
+    <div class="mybets-filter">
+      <div class="mf-btn active" onclick="filterMyBets('all',this)">All</div>
+      <div class="mf-btn" onclick="filterMyBets('pending',this)">Pending</div>
+      <div class="mf-btn" onclick="filterMyBets('won',this)">Won</div>
+      <div class="mf-btn" onclick="filterMyBets('lost',this)">Lost</div>
+    </div>
+    <div id="mbBetList"></div>
+  </div>
+</div>
+
+<!-- LEGAL MODAL -->
+<div id="legalOverlay" style="position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);padding:16px;" onclick="if(event.target===this)closeLegalModal()">
+  <div style="background:#13161e;border:1px solid var(--line2);border-radius:14px;width:100%;max-width:560px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;animation:pop .2s cubic-bezier(.16,1,.3,1);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line2);flex-shrink:0;">
+      <span style="font-size:14px;font-weight:800;color:#fff;" id="legalTitle">Terms</span>
+      <button onclick="closeLegalModal()" style="width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.05);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;">✕</button>
+    </div>
+    <div style="overflow-y:auto;padding:20px;flex:1;font-size:12px;color:var(--t2);line-height:1.75;" id="legalBody"></div>
+  </div>
+</div>
+
 </body>
 </html>
