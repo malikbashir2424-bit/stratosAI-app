@@ -1136,6 +1136,14 @@ async function loadMatches(){
     buildLeagueFilter(m);
     renderMatches(m);
     settleBets();
+    // Show live scores from fixtures data immediately (no polling wait)
+    var liveStatuses=['1H','2H','HT','ET','BT','P','LIVE'];
+    m.forEach(function(x){
+      if(liveStatuses.indexOf(x.status)>=0){
+        LIVE_DATA[x.id]={status:x.status,homeGoals:x.homeGoals,awayGoals:x.awayGoals,minute:x.elapsed,finished:false};
+        updateMatchLiveUI(x,LIVE_DATA[x.id]);
+      }
+    });
     return m;
   }catch(e){
     document.getElementById('matchesList').innerHTML='<div style="padding:16px;color:var(--r);font-size:12px;border-radius:7px;border:1px solid rgba(244,63,94,.18);background:rgba(244,63,94,.04)">Unable to load matches. Check connection and refresh.</div>';
