@@ -436,6 +436,107 @@ input{font-family:inherit;}
 
 
 
+
+/* ════════════════════════
+   SEARCH BAR
+════════════════════════ */
+.search-wrap{position:relative;margin-bottom:6px;}
+.search-input{
+  width:100%;padding:9px 12px 9px 36px;
+  border-radius:8px;background:var(--bg2);
+  border:1px solid var(--line2);color:var(--t1);
+  font-size:12px;outline:none;transition:border-color .15s;
+}
+.search-input:focus{border-color:var(--c);}
+.search-input::placeholder{color:var(--t3);}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none;}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:13px;cursor:pointer;display:none;-webkit-tap-highlight-color:transparent;}
+
+/* ════════════════════════
+   ODDS FORMAT TOGGLE
+════════════════════════ */
+.odds-fmt-wrap{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.odds-fmt-lbl{font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.odds-fmt-btns{display:flex;gap:2px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:2px;}
+.ofb{padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;color:var(--t3);cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;}
+.ofb.active{background:var(--c);color:#000;}
+
+/* ════════════════════════
+   BET LIMITS
+════════════════════════ */
+.bet-limits{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.limit-btn{padding:4px 8px;border-radius:5px;font-size:9px;font-weight:700;border:1px solid var(--line2);background:var(--bg2);color:var(--t2);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .12s;}
+.limit-btn:hover{border-color:var(--c);color:var(--c);}
+
+/* ════════════════════════
+   CASH OUT
+════════════════════════ */
+.cashout-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;margin-top:6px;padding:8px 10px;border-radius:7px;
+  background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);
+  font-size:11px;font-weight:700;color:var(--o);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  transition:background .15s;
+}
+.cashout-btn:hover{background:rgba(245,158,11,.13);}
+.cashout-val{font-size:13px;font-weight:900;}
+.cashout-badge{font-size:8px;font-weight:700;padding:1px 6px;border-radius:999px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);}
+
+/* ════════════════════════
+   ACCUMULATOR / PARLAY
+════════════════════════ */
+.acca-summary{
+  margin:6px 0;padding:8px 10px;border-radius:7px;
+  background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);
+}
+.acca-title{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--p);text-transform:uppercase;margin-bottom:5px;}
+.acca-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
+.acca-lbl{color:var(--t2);}
+.acca-val{font-weight:800;color:var(--p);}
+.acca-boost{display:inline-flex;align-items:center;gap:3px;font-size:8px;font-weight:700;padding:1px 6px;border-radius:999px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--p);}
+
+/* ════════════════════════
+   MY BETS PAGE (standalone)
+════════════════════════ */
+.mybets-overlay{
+  position:fixed;inset:0;z-index:150;
+  background:var(--bg);display:none;flex-direction:column;
+  overflow-y:auto;
+}
+.mybets-overlay.show{display:flex;}
+.mybets-header{
+  position:sticky;top:0;z-index:10;
+  background:rgba(11,13,19,.97);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line2);
+  padding:12px 16px;display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+}
+.mybets-back{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--t2);-webkit-tap-highlight-color:transparent;transition:color .15s;}
+.mybets-back:hover{color:var(--t1);}
+.mybets-title{font-size:15px;font-weight:800;color:var(--t1);flex:1;}
+.mybets-body{padding:16px;max-width:600px;margin:0 auto;width:100%;}
+.mybets-filter{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.mybets-filter::-webkit-scrollbar{display:none;}
+.mf-btn{padding:5px 12px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;cursor:pointer;border:1px solid var(--line2);background:var(--bg2);color:var(--t3);-webkit-tap-highlight-color:transparent;transition:all .15s;}
+.mf-btn.active{border-color:var(--c);background:rgba(0,200,255,.08);color:var(--c);}
+.mybets-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;}
+.mbs-cell{background:var(--bg1);border:1px solid var(--line);border-radius:8px;padding:10px 8px;text-align:center;}
+.mbs-val{font-size:16px;font-weight:900;line-height:1;}
+.mbs-lbl{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+.bet-card{background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;animation:fadeUp .2s ease-out;}
+.bet-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.bet-card-league{font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.bet-card-time{font-size:9px;color:var(--t3);}
+.bet-card-match{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;}
+.bet-card-pick{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.bet-card-pick-lbl{font-size:11px;color:var(--t2);}
+.bet-card-odds{font-size:13px;font-weight:900;color:var(--c);}
+.bet-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--line);}
+.bet-card-stake{font-size:10px;color:var(--t2);}
+.bet-card-pot{font-size:11px;font-weight:700;color:var(--g);}
+.bet-card-score{font-size:10px;color:var(--t2);font-weight:600;}
+
 /* ════════════════════════
    FEATURED MATCHES
 ════════════════════════ */
@@ -596,6 +697,23 @@ input{font-family:inherit;}
 
   <!-- LEFT -->
   <div class="col-left">
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" id="searchInput" type="text" placeholder="Search team or league…" oninput="onSearch(this.value)"/>
+      <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
+    </div>
+
+    <!-- Odds format -->
+    <div class="odds-fmt-wrap">
+      <span class="odds-fmt-lbl">Odds</span>
+      <div class="odds-fmt-btns">
+        <div class="ofb active" onclick="setOddsFormat('decimal',this)">Dec</div>
+        <div class="ofb" onclick="setOddsFormat('fractional',this)">Frac</div>
+        <div class="ofb" onclick="setOddsFormat('american',this)">US</div>
+      </div>
+    </div>
 
     <!-- User stats -->
     <div class="user-stats" id="userStats">
@@ -860,6 +978,32 @@ input{font-family:inherit;}
       </div>
     </div>
 
+  </div>
+</div>
+
+
+<!-- MY BETS PAGE -->
+<div class="mybets-overlay" id="myBetsOverlay">
+  <div class="mybets-header">
+    <button class="mybets-back" onclick="closeMyBets()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back
+    </button>
+    <span class="mybets-title">My Bets</span>
+    <button onclick="clearAllBets()" style="font-size:10px;color:var(--r);font-weight:600;padding:4px 8px;border-radius:5px;border:1px solid rgba(244,63,94,.2);background:transparent;">Clear All</button>
+  </div>
+  <div class="mybets-body">
+    <!-- Stats -->
+    <div class="mybets-stat-grid" id="mbStatGrid"></div>
+    <!-- Filter -->
+    <div class="mybets-filter">
+      <div class="mf-btn active" onclick="filterMyBets('all',this)">All</div>
+      <div class="mf-btn" onclick="filterMyBets('pending',this)">Pending</div>
+      <div class="mf-btn" onclick="filterMyBets('won',this)">Won</div>
+      <div class="mf-btn" onclick="filterMyBets('lost',this)">Lost</div>
+    </div>
+    <!-- Bet cards -->
+    <div id="mbBetList"></div>
   </div>
 </div>
 
@@ -1306,7 +1450,7 @@ function placeBet(sId){
   document.getElementById('toastBody').innerHTML='<strong style="color:#fff">'+picks+'</strong><br>Stake: <strong style="color:#fff">'+stake+' $STRAT</strong> · Win: <strong style="color:var(--g)">'+pot+' $STRAT</strong>';
   document.getElementById('toastOverlay').classList.add('show');
   S.betSlip.forEach(function(b){var btn=document.getElementById('ob-'+b.id+'-'+b.pick);if(btn)btn.classList.remove('sel');});
-  S.betSlip=[];renderSlip();renderMobSlip();updateUserStats();
+  S.betSlip=[];renderSlip();renderMobSlip();updateUserStats();updateMyBetsNavCount();
   if(S.activeTab==='bets')renderMyBets();
   if(S.mobTab==='bets')renderMobBets();
 }
@@ -1652,6 +1796,278 @@ function openLegal(type){
 }
 function closeLegalModal(){document.getElementById('legalOverlay').classList.remove('show');}
 function closeLegal(e){if(e.target===document.getElementById('legalOverlay'))closeLegalModal();}
+
+
+/* ══ ODDS FORMAT ══ */
+var ODDS_FMT = 'decimal';
+
+function setOddsFormat(fmt, btn){
+  ODDS_FMT = fmt;
+  document.querySelectorAll('.ofb').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  // Re-render all visible odd buttons
+  document.querySelectorAll('.odd').forEach(function(el){
+    var raw = parseFloat(el.dataset.raw);
+    if(!raw) return;
+    el.querySelector('.odd-val').textContent = fmtOdds(raw);
+  });
+  // Re-render betslip
+  renderSlip(); renderMobSlip();
+}
+
+function fmtOdds(decimal){
+  if(ODDS_FMT === 'decimal') return decimal.toFixed(2);
+  if(ODDS_FMT === 'fractional'){
+    var num = decimal - 1;
+    // Find simple fraction
+    var denom = 1;
+    while(Math.round(num * denom) !== num * denom && denom < 100) denom++;
+    var n = Math.round(num * denom);
+    return n + '/' + denom;
+  }
+  if(ODDS_FMT === 'american'){
+    if(decimal >= 2) return '+' + Math.round((decimal-1)*100);
+    return '-' + Math.round(100/(decimal-1));
+  }
+  return decimal.toFixed(2);
+}
+
+/* ══ SEARCH ══ */
+function onSearch(val){
+  var clear = document.getElementById('searchClear');
+  if(clear) clear.style.display = val ? 'block' : 'none';
+  if(!val.trim()){renderMatches(S_ALL);return;}
+  var q = val.toLowerCase();
+  var filtered = S_ALL.filter(function(m){
+    return m.home.toLowerCase().includes(q) ||
+           m.away.toLowerCase().includes(q) ||
+           m.league.toLowerCase().includes(q);
+  });
+  renderMatches(filtered);
+}
+function clearSearch(){
+  var input = document.getElementById('searchInput');
+  var clear = document.getElementById('searchClear');
+  if(input) input.value = '';
+  if(clear) clear.style.display = 'none';
+  renderMatches(S_ALL);
+}
+
+/* ══ BET LIMITS ══ */
+var BET_MIN = 10;
+var BET_MAX = 10000;
+
+function setStakeLimit(val, slipId){
+  var el = document.getElementById(slipId);
+  if(el){ el.value = val; updatePot(slipId, slipId==='stakeD'?'potD':'potM'); }
+}
+
+/* ══ CASH OUT ══ */
+function calcCashOut(bet){
+  // Cash out = (stake * current_odds) / original_odds * 0.9 (10% house edge)
+  if(!bet || !bet.odds || bet.settled) return null;
+  var kickoff = new Date(bet.kickoff);
+  var now = new Date();
+  var elapsed = (now - kickoff) / 60000; // minutes
+  if(elapsed < 0 || elapsed > 95) return null; // not in-play
+  // Simulate odds movement (cash out is typically 90% of current value)
+  var cashoutVal = (bet.stake * 0.9).toFixed(2);
+  return parseFloat(cashoutVal);
+}
+
+function doCashOut(betId){
+  var bets = loadBets();
+  var idx = bets.findIndex(function(b){return b.betId === betId;});
+  if(idx < 0) return;
+  var bet = bets[idx];
+  var coVal = calcCashOut(bet);
+  if(coVal === null) return;
+  bets[idx].settled = true;
+  bets[idx].won = true;
+  bets[idx].cashOut = true;
+  bets[idx].potentialWin = coVal;
+  bets[idx].result = 'CO';
+  saveBets(bets);
+  updateUserStats();
+  // Show toast
+  document.getElementById('toastBody').innerHTML = 'Cash out successful: <strong style="color:var(--o)">' + coVal + ' $STRAT</strong>';
+  document.getElementById('toastOverlay').classList.add('show');
+  if(document.getElementById('myBetsOverlay').classList.contains('show')) renderMyBetsPage('all');
+}
+
+/* ══ ACCUMULATOR BONUS ══ */
+function accaBonus(count){
+  if(count < 3) return 0;
+  if(count === 3) return 5;
+  if(count === 4) return 10;
+  if(count >= 5) return 15;
+  return 0;
+}
+
+/* ══ MY BETS PAGE ══ */
+var MB_FILTER = 'all';
+
+function openMyBets(){
+  renderMyBetsPage(MB_FILTER);
+  document.getElementById('myBetsOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeMyBets(){
+  document.getElementById('myBetsOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+function filterMyBets(f, btn){
+  MB_FILTER = f;
+  document.querySelectorAll('.mf-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderMyBetsPage(f);
+}
+function clearAllBets(){
+  if(!confirm('Clear all bet history?')) return;
+  saveBets([]);
+  updateUserStats();
+  renderMyBetsPage('all');
+  updateMyBetsNavCount();
+}
+function updateMyBetsNavCount(){
+  var bets = loadBets();
+  var pending = bets.filter(function(b){return !b.settled;});
+  var el = document.getElementById('myBetsNavCount');
+  if(el){
+    if(pending.length){ el.textContent = pending.length; el.style.display = 'inline'; }
+    else{ el.style.display = 'none'; }
+  }
+}
+
+function renderMyBetsPage(filter){
+  var bets = loadBets();
+  var settled = bets.filter(function(b){return b.settled;});
+  var won = settled.filter(function(b){return b.won && !b.cashOut;});
+  var lost = settled.filter(function(b){return !b.won;});
+  var pending = bets.filter(function(b){return !b.settled;});
+  var wr = settled.length ? ((won.length/settled.length)*100).toFixed(0)+'%' : '—';
+  var totalStaked = bets.reduce(function(a,b){return a+(b.stake||0);},0);
+
+  // Stats grid
+  document.getElementById('mbStatGrid').innerHTML =
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--c)">'+bets.length+'</div><div class="mbs-lbl">Total</div></div>'+
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--g)">'+won.length+'</div><div class="mbs-lbl">Won</div></div>'+
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--g)">'+wr+'</div><div class="mbs-lbl">Win Rate</div></div>'+
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--o)">'+totalStaked.toFixed(0)+'</div><div class="mbs-lbl">Staked</div></div>';
+
+  // Filter
+  var filtered = bets;
+  if(filter === 'pending') filtered = pending;
+  else if(filter === 'won') filtered = won;
+  else if(filter === 'lost') filtered = lost;
+
+  if(!filtered.length){
+    document.getElementById('mbBetList').innerHTML =
+      '<div style="text-align:center;padding:40px 16px;color:var(--t3);font-size:13px">No '+filter+' bets.</div>';
+    return;
+  }
+
+  document.getElementById('mbBetList').innerHTML = filtered.map(function(b){
+    var sc = b.settled ? (b.won ? 'bi-won' : 'bi-lost') : 'bi-pend';
+    var st = b.settled ? (b.won ? (b.cashOut ? 'Cashed Out' : 'Won') : 'Lost') : 'Pending';
+    var coVal = calcCashOut(b);
+    var safeId = String(b.betId).replace(/'/g,'');
+    var coBtn = (!b.settled && coVal) ?
+      '<button class="cashout-btn" onclick="doCashOut(\''+safeId+'\')">'+
+        '<span>Cash Out</span>'+
+        '<span class="cashout-val">'+coVal+' $STRAT</span>'+
+      '</button>' : '';
+    var timeAgo = formatTimeAgo(b.timestamp);
+    return '<div class="bet-card">'+
+      '<div class="bet-card-head">'+
+        '<span class="bet-card-league">'+(b.league||'Match')+'</span>'+
+        '<span class="bet-card-time">'+timeAgo+'</span>'+
+      '</div>'+
+      '<div class="bet-card-match">'+b.match+'</div>'+
+      '<div class="bet-card-pick">'+
+        '<span class="bet-card-pick-lbl">'+b.label+' ('+b.pick+')</span>'+
+        '<span style="flex:1"></span>'+
+        '<span class="bet-card-odds">'+fmtOdds(b.odds)+'</span>'+
+        '<span class="bi-badge '+sc+'" style="margin-left:6px">'+st+'</span>'+
+      '</div>'+
+      coBtn+
+      '<div class="bet-card-footer">'+
+        '<span class="bet-card-stake">Stake: <strong style="color:var(--t1)">'+b.stake+' $STRAT</strong></span>'+
+        '<span class="bet-card-pot" style="color:'+(b.settled?(b.won?'var(--g)':'var(--r)'):'var(--o)')+'">'+
+          (b.settled ? (b.won ? '+'+b.potentialWin : '-'+b.stake) : b.potentialWin+' potential')+
+        '</span>'+
+      '</div>'+
+      (b.finalScore ? '<div style="font-size:9px;color:var(--t3);margin-top:4px">Final: '+b.finalScore+'</div>' : '')+
+    '</div>';
+  }).join('');
+}
+
+function formatTimeAgo(ts){
+  if(!ts) return '';
+  var diff = (Date.now() - new Date(ts)) / 1000;
+  if(diff < 60) return 'Just now';
+  if(diff < 3600) return Math.floor(diff/60)+'m ago';
+  if(diff < 86400) return Math.floor(diff/3600)+'h ago';
+  return Math.floor(diff/86400)+'d ago';
+}
+
+/* ══ OVERRIDE oddBtn to include data-raw and format ══ */
+function oddBtn(mId,pick,label,val){
+  return '<div class="odd" id="ob-'+mId+'-'+pick+'" data-raw="'+val+'" onclick="selectOdd(event,'+mId+',\''+pick+'\',\''+label+'\','+val+')">'+
+    '<span class="odd-lbl">'+label+'</span>'+
+    '<span class="odd-val">'+fmtOdds(val)+'</span>'+
+  '</div>';
+}
+
+/* ══ OVERRIDE slipHTML to include acca bonus, limits ══ */
+function slipHTML(sid,pid){
+  if(!S.betSlip.length) return '<div class="bs-empty"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>Select odds to build your slip</div>';
+  var tot = S.betSlip.reduce(function(a,b){return a*b.odds;},1);
+  var bonus = accaBonus(S.betSlip.length);
+  var boostedTot = tot * (1 + bonus/100);
+  var stake = 100;
+  var pot = (stake * boostedTot).toFixed(2);
+  var items = S.betSlip.map(function(b){
+    return '<div class="bs-item">'+
+      '<button class="bs-remove" onclick="removeBetFromSlip('+b.id+')">✕</button>'+
+      '<div class="bs-item-match">'+b.match+'</div>'+
+      '<div class="bs-item-pick">'+b.label+' <span style="font-size:9px;color:var(--t3)">('+b.pick+')</span></div>'+
+      '<div class="bs-item-odds">'+fmtOdds(b.odds)+'</div>'+
+    '</div>';
+  }).join('');
+  // Acca bonus section
+  var accaHtml = (S.betSlip.length >= 3) ?
+    '<div class="acca-summary">'+
+      '<div class="acca-title">Accumulator <span class="acca-boost">+'+bonus+'% Bonus</span></div>'+
+      '<div class="acca-row"><span class="acca-lbl">Base odds</span><span style="color:var(--t2)">'+tot.toFixed(2)+'</span></div>'+
+      '<div class="acca-row"><span class="acca-lbl">Boosted odds</span><span class="acca-val">'+boostedTot.toFixed(2)+'</span></div>'+
+    '</div>' : '';
+  return items + accaHtml +
+    '<input id="'+sid+'" class="bs-stake" type="number" min="'+BET_MIN+'" max="'+BET_MAX+'" placeholder="Stake ($STRAT)" value="'+stake+'" oninput="updatePot(\''+sid+'\',\''+pid+'\')" style="margin-top:8px">'+
+    '<div class="bet-limits">'+
+      '<button class="limit-btn" onclick="setStakeLimit('+BET_MIN+',\''+sid+'\')">Min '+BET_MIN+'</button>'+
+      '<button class="limit-btn" onclick="setStakeLimit(100,\''+sid+'\')">100</button>'+
+      '<button class="limit-btn" onclick="setStakeLimit(500,\''+sid+'\')">500</button>'+
+      '<button class="limit-btn" onclick="setStakeLimit('+BET_MAX+',\''+sid+'\')">Max '+BET_MAX+'</button>'+
+    '</div>'+
+    '<div class="bs-summary" style="margin-top:8px">'+
+      '<div class="bs-srow"><span class="bs-slbl">Selections</span><span class="bs-sval">'+S.betSlip.length+'</span></div>'+
+      '<div class="bs-srow"><span class="bs-slbl">Total odds</span><span class="bs-sval">'+boostedTot.toFixed(2)+(bonus?'<span style="font-size:8px;color:var(--p);margin-left:3px">+'+bonus+'%</span>':'')+'</span></div>'+
+      '<div class="bs-srow" style="border-top:1px solid var(--line);padding-top:6px;margin-top:4px"><span class="bs-slbl">Potential win</span><span class="bs-pot" id="'+pid+'">'+pot+' $STRAT</span></div>'+
+    '</div>'+
+    '<button class="bs-place" onclick="placeBet(\''+sid+'\')">Place Demo Bet</button>'+
+    '<div class="bs-disclaimer">Demo only · Min '+BET_MIN+' · Max '+BET_MAX+' $STRAT</div>';
+}
+
+/* ══ UPDATE updatePot for acca ══ */
+function updatePot(sid,pid){
+  var stake = parseFloat(document.getElementById(sid).value)||0;
+  var tot = S.betSlip.reduce(function(a,b){return a*b.odds;},1);
+  var bonus = accaBonus(S.betSlip.length);
+  var boosted = tot*(1+bonus/100);
+  var el = document.getElementById(pid);
+  if(el) el.textContent = (stake*boosted).toFixed(2)+' $STRAT';
+}
 
 /* ══ INIT ══ */
 loadMatches().then(function(){ startLivePolling(); });
