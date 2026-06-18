@@ -3,671 +3,407 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>STRATOS AI | Prediction History</title>
-<meta name="theme-color" content="#000000"/>
+<title>STRATOS AI · Prediction History</title>
+<meta name="theme-color" content="#0b0d13"/>
 <style>
-/* ═══════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════ */
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{background:#0a0c0f;color:#e8feff;font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden;min-height:100vh;}
+body{background:#0b0d13;color:#e2e8f0;font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden;min-height:100vh;-webkit-text-size-adjust:100%;}
 a{text-decoration:none;color:inherit;}
 button{cursor:pointer;font-family:inherit;border:none;background:none;}
-
 :root{
-  --blue:#00E5FF;--green:#39FF7A;--orange:#FF9D2E;--red:#ff5c7a;
-  --bg2:rgba(255,255,255,.03);--border:rgba(255,255,255,.07);
-  --text-muted:#6fa9b2;--text-dim:#4f7780;
-  --radius:10px;--radius-lg:14px;
+  --c:#00c8ff;--g:#00e87a;--o:#f59e0b;--r:#f43f5e;
+  --bg:#0b0d13;--bg1:#111318;--bg2:#181b23;--bg3:#1f2330;
+  --line:#ffffff0d;--line2:#ffffff16;--line3:#ffffff22;
+  --t1:#f1f5f9;--t2:#94a3b8;--t3:#4b5563;
 }
-
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes barGrow{from{width:0}}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line3);border-radius:3px;}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes barGrow{from{width:0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes ringAnim{from{stroke-dashoffset:283}to{stroke-dashoffset:var(--target)}}
 
-/* ═══════════════════════════════════════
-   GRID BG
-═══════════════════════════════════════ */
-.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.2;background-image:linear-gradient(rgba(0,229,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.06) 1px,transparent 1px);background-size:40px 40px;}
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;}
+.tb-brand{height:50px;background:#080a0f;border-bottom:1px solid var(--line2);display:flex;align-items:center;padding:0 14px;gap:10px;}
+.brand-logo{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:900;letter-spacing:.07em;color:#fff;}
+.brand-icon{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#00c8ff,#0062ff);display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(0,200,255,.3);flex-shrink:0;}
+.brand-spacer{flex:1;}
+.tb-nav{height:36px;background:#0d0f16;border-bottom:1px solid var(--line);display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none;}
+.tb-nav::-webkit-scrollbar{display:none;}
+.tn{display:inline-flex;align-items:center;gap:5px;padding:0 15px;font-size:11px;font-weight:600;color:var(--t3);border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .15s,border-color .15s;}
+.tn:hover{color:var(--t2);}
+.tn.active{color:var(--c);border-bottom-color:var(--c);}
 
-/* ═══════════════════════════════════════
-   NAVBAR
-═══════════════════════════════════════ */
-.nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(5,7,10,.94);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,229,255,.1);height:56px;}
-.nav-inner{max-width:1100px;margin:0 auto;padding:0 16px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.nav-logo{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;letter-spacing:.1em;text-shadow:0 0 10px var(--blue);}
-.nav-links{display:flex;align-items:center;gap:12px;}
-.nav-link{font-size:13px;font-weight:600;color:var(--text-muted);transition:color .2s;}
-.nav-link:hover{color:#fff;}
-.nav-link.active{color:var(--blue);}
+/* PAGE */
+.page{padding-top:86px;max-width:900px;margin:0 auto;padding-left:14px;padding-right:14px;padding-bottom:48px;}
 
-/* ═══════════════════════════════════════
-   PAGE
-═══════════════════════════════════════ */
-.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:72px 16px 48px;}
+/* HERO */
+.hero{text-align:center;padding:32px 0 28px;}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,200,255,.07);border:1px solid rgba(0,200,255,.2);color:var(--c);margin-bottom:14px;}
+.hero h1{font-size:clamp(1.6rem,5vw,2.4rem);font-weight:900;color:#fff;margin-bottom:8px;letter-spacing:-.02em;}
+.hero p{font-size:13px;color:var(--t2);max-width:460px;margin:0 auto;line-height:1.7;}
 
-/* ═══════════════════════════════════════
-   HERO HEADER
-═══════════════════════════════════════ */
-.page-hero{text-align:center;padding:32px 0 28px;}
-.page-hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em;border:1px solid rgba(57,255,122,.35);color:var(--green);background:rgba(57,255,122,.06);box-shadow:0 0 12px rgba(57,255,122,.2);margin-bottom:16px;animation:pulse 2.4s ease-in-out infinite;}
-.page-hero h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;color:#fff;margin-bottom:8px;}
-.page-hero p{font-size:14px;color:var(--text-muted);max-width:480px;margin:0 auto;line-height:1.65;}
+/* ACCURACY RING */
+.accuracy-section{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;margin-bottom:24px;}
+.ring-wrap{position:relative;width:140px;height:140px;flex-shrink:0;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:rgba(0,200,255,.08);stroke-width:10;}
+.ring-fill{fill:none;stroke:var(--g);stroke-width:10;stroke-linecap:round;stroke-dasharray:283;stroke-dashoffset:283;transition:stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1);}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-pct{font-size:1.8rem;font-weight:900;color:var(--g);line-height:1;}
+.ring-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
 
-/* ═══════════════════════════════════════
-   ACCURACY DASHBOARD
-═══════════════════════════════════════ */
-.accuracy-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;}
-@media(min-width:600px){.accuracy-grid{grid-template-columns:repeat(4,1fr);}}
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;flex:1;max-width:400px;}
+.stat-card{background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-align:center;}
+.stat-val{font-size:1.6rem;font-weight:900;line-height:1;margin-bottom:4px;}
+.stat-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;}
+.stat-sub{font-size:10px;color:var(--t2);margin-top:3px;}
 
-.acc-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;text-align:center;transition:border-color .2s;}
-.acc-card:hover{border-color:rgba(0,229,255,.25);}
-.acc-card.highlight{border-color:rgba(57,255,122,.3);background:rgba(57,255,122,.04);}
-.acc-val{font-size:clamp(1.8rem,4vw,2.4rem);font-weight:900;line-height:1;margin-bottom:4px;animation:countUp .5s ease-out;}
-.acc-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);}
-.acc-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+/* CONFIDENCE BARS */
+.conf-section{background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px;}
+.conf-title{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--t2);text-transform:uppercase;margin-bottom:12px;}
+.conf-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.conf-row:last-child{margin-bottom:0;}
+.conf-label{font-size:11px;font-weight:600;width:52px;flex-shrink:0;}
+.conf-track{flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:3px;animation:barGrow .8s cubic-bezier(.16,1,.3,1);}
+.conf-stat{font-size:10px;color:var(--t2);width:48px;text-align:right;flex-shrink:0;}
 
-/* Big accuracy ring */
-.accuracy-ring-wrap{display:flex;justify-content:center;margin-bottom:20px;}
-.accuracy-ring{position:relative;width:160px;height:160px;}
-.accuracy-ring svg{transform:rotate(-90deg);}
-.accuracy-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.accuracy-ring-pct{font-size:2rem;font-weight:900;color:var(--green);text-shadow:0 0 16px rgba(57,255,122,.5);}
-.accuracy-ring-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-top:2px;}
+/* FILTERS */
+.filter-bar{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;padding-bottom:2px;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.filter-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 13px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;cursor:pointer;border:1px solid var(--line2);background:var(--bg2);color:var(--t3);-webkit-tap-highlight-color:transparent;transition:all .15s;}
+.filter-btn:hover,.filter-btn.active{border-color:var(--c);background:rgba(0,200,255,.08);color:var(--c);}
 
-/* ═══════════════════════════════════════
-   FILTERS
-═══════════════════════════════════════ */
-.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center;}
-.filter-btn{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--border);color:var(--text-muted);background:var(--bg2);transition:all .15s;cursor:pointer;}
-.filter-btn:hover{border-color:rgba(0,229,255,.3);color:#e8feff;}
-.filter-btn.active{border-color:var(--blue);color:var(--blue);background:rgba(0,229,255,.08);}
-.filter-label{font-size:11px;color:var(--text-dim);margin-right:4px;}
+/* PREDICTION CARDS */
+.pred-list{display:flex;flex-direction:column;gap:8px;}
+.pred-card{background:var(--bg1);border:1px solid var(--line);border-radius:10px;overflow:hidden;animation:fadeUp .2s ease-out;}
+.pred-card.correct{border-color:rgba(0,232,122,.2);}
+.pred-card.wrong{border-color:rgba(244,63,94,.15);}
+.pred-card.pending{border-color:rgba(245,158,11,.15);}
 
-/* ═══════════════════════════════════════
-   PREDICTION CARDS
-═══════════════════════════════════════ */
-.predictions-list{display:flex;flex-direction:column;gap:8px;}
+.pred-head{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--line);}
+.pred-league{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);}
+.pred-time{font-size:9px;color:var(--t3);margin-left:auto;}
+.pred-status{font-size:8px;font-weight:800;padding:2px 8px;border-radius:999px;flex-shrink:0;}
+.ps-correct{background:rgba(0,232,122,.1);color:var(--g);border:1px solid rgba(0,232,122,.25);}
+.ps-wrong{background:rgba(244,63,94,.08);color:var(--r);border:1px solid rgba(244,63,94,.2);}
+.ps-pending{background:rgba(245,158,11,.07);color:var(--o);border:1px solid rgba(245,158,11,.2);}
 
-.pred-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;transition:all .18s;animation:fadeUp .3s ease-out;}
-.pred-card:hover{border-color:rgba(0,229,255,.2);transform:translateY(-1px);}
-.pred-card.won{border-left:3px solid var(--green);}
-.pred-card.lost{border-left:3px solid var(--red);}
-.pred-card.pending{border-left:3px solid var(--orange);}
+.pred-body{padding:11px 13px;}
+.pred-match{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:4px;}
+.pred-score{font-size:12px;color:var(--t2);margin-bottom:8px;font-weight:600;}
+.pred-ai-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pred-verdict{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(0,200,255,.07);border:1px solid rgba(0,200,255,.2);color:var(--c);}
+.pred-conf{font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;}
+.pred-analysis{font-size:11px;color:var(--t2);line-height:1.65;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);}
 
-.pred-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
-.pred-league{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);background:rgba(255,255,255,.04);padding:3px 8px;border-radius:999px;border:1px solid var(--border);}
-.pred-time{font-size:11px;color:var(--text-dim);margin-left:auto;}
-.pred-status{font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;}
-.pred-status.won{background:rgba(57,255,122,.1);color:var(--green);border:1px solid rgba(57,255,122,.3);}
-.pred-status.lost{background:rgba(255,92,122,.1);color:var(--red);border:1px solid rgba(255,92,122,.3);}
-.pred-status.pending{background:rgba(255,157,46,.08);color:var(--orange);border:1px solid rgba(255,157,46,.25);}
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 20px;}
+.empty-icon{width:56px;height:56px;border-radius:14px;background:var(--bg2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.empty-title{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:6px;}
+.empty-sub{font-size:12px;color:var(--t3);line-height:1.7;max-width:300px;margin:0 auto 20px;}
+.empty-cta{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;background:linear-gradient(135deg,#00c8ff,#0055ff);color:#000;}
 
-.pred-match{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
-.pred-team{display:flex;align-items:center;gap:8px;flex:1;}
-.pred-team img{width:24px;height:24px;object-fit:contain;}
-.pred-team-name{font-size:14px;font-weight:700;}
-.pred-score{font-size:1.4rem;font-weight:900;color:#fff;text-align:center;flex-shrink:0;min-width:60px;}
-.pred-score.pending{color:var(--text-dim);font-size:1rem;}
+/* SPINNER */
+.spinner{width:16px;height:16px;border:2px solid rgba(0,200,255,.12);border-top-color:var(--c);border-radius:50%;animation:spin .65s linear infinite;display:inline-block;vertical-align:middle;}
 
-.pred-ai{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:var(--radius);background:rgba(0,229,255,.03);border:1px solid rgba(0,229,255,.1);}
-.pred-ai-icon{width:22px;height:22px;border-radius:6px;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pred-ai-verdict{font-size:12px;font-weight:700;color:#e8feff;flex:1;}
-.pred-ai-conf{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;}
-.pred-ai-result{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;flex-shrink:0;}
-.pred-ai-result.correct{background:rgba(57,255,122,.1);color:var(--green);}
-.pred-ai-result.wrong{background:rgba(255,92,122,.1);color:var(--red);}
-.pred-ai-result.pending{background:rgba(255,157,46,.08);color:var(--orange);}
-
-/* Empty state */
-.empty-state{text-align:center;padding:48px 20px;color:var(--text-dim);}
-.empty-state svg{margin:0 auto 16px;display:block;opacity:.4;}
-.empty-state h3{font-size:16px;font-weight:700;color:#e8feff;margin-bottom:8px;}
-.empty-state p{font-size:13px;line-height:1.6;}
-
-/* Spinner */
-.spinner{width:20px;height:20px;border:2px solid rgba(0,229,255,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px;}
-
-/* ═══════════════════════════════════════
-   CONFIDENCE BREAKDOWN
-═══════════════════════════════════════ */
-.conf-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:20px;}
-.conf-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--blue);margin-bottom:14px;}
-.conf-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.conf-label{font-size:12px;font-weight:600;width:60px;flex-shrink:0;}
-.conf-bar-wrap{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.05);overflow:hidden;}
-.conf-bar{height:100%;border-radius:4px;animation:barGrow .7s cubic-bezier(.16,1,.3,1);}
-.conf-stat{font-size:11px;color:var(--text-muted);width:60px;text-align:right;flex-shrink:0;}
-
-/* ══ MOBILE OVERRIDES ══ */
-.hamburger{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:36px;height:36px;border-radius:8px;border:1px solid rgba(0,229,255,.25);background:rgba(0,229,255,.05);}
-@media(min-width:768px){.hamburger{display:none;}}
-.ham-line{width:16px;height:2px;background:#00E5FF;border-radius:2px;transition:all .25s;}
-.hamburger.open .ham-line:nth-child(1){transform:translateY(7px) rotate(45deg);}
-.hamburger.open .ham-line:nth-child(2){opacity:0;}
-.hamburger.open .ham-line:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
-.mob-drawer{display:none;position:fixed;top:56px;left:0;right:0;z-index:49;background:rgba(2,4,8,.98);border-bottom:1px solid rgba(0,229,255,.12);padding:12px 16px 20px;}
-.mob-drawer.open{display:block;}
-.mob-item{display:flex;align-items:center;width:100%;padding:12px 14px;border-radius:10px;color:#8fc6cf;font-size:14px;font-weight:600;margin-bottom:4px;background:transparent;border:1px solid transparent;text-align:left;transition:all .2s;text-decoration:none;}
-.mob-item:hover,.mob-item:active{background:rgba(0,229,255,.06);border-color:rgba(0,229,255,.18);color:#fff;}
-.mob-item.blue{color:var(--blue);border-color:rgba(0,229,255,.2);background:rgba(0,229,255,.04);}
-.mob-item.cta{background:#00E5FF;color:#000;border-color:#00E5FF;font-weight:800;justify-content:center;margin-top:8px;}
-
-@media(max-width:767px){
-  .nav-inner{padding:0 14px;}
-  .nav-links{display:none !important;}
-  .page{padding:64px 14px 48px;}
-  
-  /* Hero */
-  .page-hero{padding:24px 0 20px;}
-  .page-hero h1{font-size:clamp(1.4rem,6vw,2rem);}
-  .page-hero p{font-size:13px;}
-  
-  /* Accuracy grid - 2 col on small screens */
-  .accuracy-grid{grid-template-columns:repeat(2,1fr);}
-  .acc-val{font-size:1.6rem;}
-  
-  /* Ring */
-  .accuracy-ring{width:130px;height:130px;}
-  .accuracy-ring svg{width:130px;height:130px;}
-  .accuracy-ring-pct{font-size:1.6rem;}
-  
-  /* Filters - scroll horizontally */
-  .filters{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-  .filters::-webkit-scrollbar{display:none;}
-  .filter-btn{white-space:nowrap;flex-shrink:0;}
-  
-  /* Pred cards */
-  .pred-card{padding:12px;}
-  .pred-top{gap:6px;margin-bottom:8px;}
-  .pred-team-name{font-size:13px;}
-  .pred-score{font-size:1.1rem;min-width:48px;}
-  .pred-ai{flex-wrap:wrap;gap:6px;padding:8px 10px;}
-  .pred-ai-verdict{font-size:11px;}
-  
-  /* Conf section */
-  .conf-section{padding:14px;}
-  .conf-label{width:50px;font-size:11px;}
-  .conf-stat{width:50px;font-size:10px;}
+/* MOBILE */
+@media(max-width:680px){
+  .accuracy-section{gap:16px;}
+  .ring-wrap{width:120px;height:120px;}
+  .ring-pct{font-size:1.5rem;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .stat-val{font-size:1.3rem;}
+  .pred-match{font-size:13px;}
+  .page{padding-left:10px;padding-right:10px;padding-bottom:60px;}
 }
-
-@media(max-width:400px){
-  .acc-val{font-size:1.4rem;}
-  .pred-team-name{font-size:12px;}
-}
-
 </style>
 </head>
 <body>
 
-<div class="grid-bg"></div>
-
-<!-- NAV -->
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-logo">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2" style="filter:drop-shadow(0 0 6px #00E5FF)"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
-      STRATOS<span style="color:#00E5FF">AI</span>
-    </a>
-    <div class="nav-links" style="display:flex;align-items:center;gap:12px;">
-      <a href="index.html" class="nav-link">Sportsbook</a>
-      <a href="history.html" class="nav-link active">AI History</a>
-      <a href="demo.html" class="nav-link">How It Works</a>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="brand-logo">
+      <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>
+      STRATOS<span style="color:var(--c)">AI</span>
     </div>
-    <button class="hamburger" id="ham" onclick="toggleDraw()" aria-label="Menu">
-      <span class="ham-line"></span><span class="ham-line"></span><span class="ham-line"></span>
-    </button>
+    <div class="brand-spacer"></div>
   </div>
-</nav>
-<div class="mob-drawer" id="mobDraw">
-  <a href="index.html" class="mob-item">Sportsbook</a>
-  <a href="history.html" class="mob-item blue">AI History</a>
-  <a href="demo.html" class="mob-item">How It Works</a>
+  <div class="tb-nav">
+    <div class="tn" onclick="location.href='index.html'">Sportsbook</div>
+    <div class="tn active">AI Predictions</div>
+    <div class="tn" onclick="location.href='demo.html'">How It Works</div>
+    <div class="tn" onclick="window.open('https://stratosai.net','_blank')">STRATOS Platform</div>
+  </div>
 </div>
 
 <!-- PAGE -->
 <div class="page">
 
   <!-- HERO -->
-  <div class="page-hero">
-    <div class="page-hero-badge">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>
-      STRATOS AI · PREDICTION TRACK RECORD
+  <div class="hero">
+    <div class="hero-tag">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>
+      STRATOS AI · Prediction Track Record
     </div>
     <h1>AI Prediction History</h1>
-    <p>Full transparency — every prediction we made, verified against the real result.</p>
+    <p>Full transparency — every prediction made, verified against the real result.</p>
   </div>
 
-  <!-- ACCURACY RING + STATS -->
-  <div style="background:var(--bg2);border:1px solid rgba(57,255,122,.15);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;">
-    <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;">
-      <div class="accuracy-ring">
-        <svg width="160" height="160" viewBox="0 0 160 160">
-          <circle cx="80" cy="80" r="64" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="14"/>
-          <circle cx="80" cy="80" r="64" fill="none" stroke="#39FF7A" stroke-width="14"
-            stroke-dasharray="402" stroke-dashoffset="402"
-            id="accuracyRingCircle" style="transition:stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1);filter:drop-shadow(0 0 8px #39FF7A)"/>
-        </svg>
-        <div class="accuracy-ring-text">
-          <div class="accuracy-ring-pct" id="ringPct">—</div>
-          <div class="accuracy-ring-label">Accuracy</div>
-        </div>
+  <!-- ACCURACY -->
+  <div class="accuracy-section">
+    <div class="ring-wrap">
+      <svg width="140" height="140" viewBox="0 0 100 100">
+        <circle class="ring-bg" cx="50" cy="50" r="45"/>
+        <circle class="ring-fill" id="ringFill" cx="50" cy="50" r="45"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-pct" id="accPct">—</div>
+        <div class="ring-lbl">Accuracy</div>
       </div>
-      <div class="accuracy-grid" id="accStats">
-        <div class="acc-card highlight">
-          <div class="acc-val" style="color:#39FF7A" id="statAccuracy">—</div>
-          <div class="acc-lbl">Accuracy</div>
-          <div class="acc-sub">of settled predictions</div>
-        </div>
-        <div class="acc-card">
-          <div class="acc-val" style="color:#00E5FF" id="statTotal">0</div>
-          <div class="acc-lbl">Total</div>
-          <div class="acc-sub">predictions made</div>
-        </div>
-        <div class="acc-card">
-          <div class="acc-val" style="color:#39FF7A" id="statCorrect">0</div>
-          <div class="acc-lbl">Correct</div>
-          <div class="acc-sub">predictions won</div>
-        </div>
-        <div class="acc-card">
-          <div class="acc-val" style="color:#FF9D2E" id="statPending">0</div>
-          <div class="acc-lbl">Pending</div>
-          <div class="acc-sub">awaiting result</div>
-        </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="statTotal" style="color:var(--c)">0</div>
+        <div class="stat-lbl">Total</div>
+        <div class="stat-sub">predictions made</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statCorrect" style="color:var(--g)">0</div>
+        <div class="stat-lbl">Correct</div>
+        <div class="stat-sub">predictions won</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statWrong" style="color:var(--r)">0</div>
+        <div class="stat-lbl">Wrong</div>
+        <div class="stat-sub">predictions lost</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statPending" style="color:var(--o)">0</div>
+        <div class="stat-lbl">Pending</div>
+        <div class="stat-sub">awaiting result</div>
       </div>
     </div>
   </div>
 
-  <!-- CONFIDENCE BREAKDOWN -->
+  <!-- CONFIDENCE BARS -->
   <div class="conf-section" id="confSection" style="display:none">
     <div class="conf-title">Accuracy by Confidence Level</div>
-    <div id="confBreakdown"></div>
-  </div>
-
-  <!-- WEEKLY CHART -->
-  <div id="weeklySection" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:20px;">
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--blue);margin-bottom:4px;">Weekly Accuracy</div>
-    <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">AI performance over time</div>
-    <div id="weeklyChart"></div>
-  </div>
-
-  <!-- SETTLE INDICATOR -->
-  <div id="settleIndicator" style="display:none;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--radius);background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.1);margin-bottom:12px;font-size:12px;color:var(--text-muted);">
-    <span style="width:14px;height:14px;border:2px solid rgba(0,229,255,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0"></span>
-    Checking for new results…
+    <div class="conf-row">
+      <span class="conf-label" style="color:var(--g)">High</span>
+      <div class="conf-track"><div class="conf-fill" id="confHighBar" style="background:var(--g);width:0%"></div></div>
+      <span class="conf-stat" id="confHighStat">—</span>
+    </div>
+    <div class="conf-row">
+      <span class="conf-label" style="color:var(--o)">Medium</span>
+      <div class="conf-track"><div class="conf-fill" id="confMedBar" style="background:var(--o);width:0%"></div></div>
+      <span class="conf-stat" id="confMedStat">—</span>
+    </div>
+    <div class="conf-row">
+      <span class="conf-label" style="color:var(--t2)">Low</span>
+      <div class="conf-track"><div class="conf-fill" id="confLowBar" style="background:var(--t2);width:0%"></div></div>
+      <span class="conf-stat" id="confLowStat">—</span>
+    </div>
   </div>
 
   <!-- FILTERS -->
-  <div class="filters">
-    <span class="filter-label">Filter:</span>
-    <button class="filter-btn active" onclick="setFilter('all')" id="f-all">All</button>
-    <button class="filter-btn" onclick="setFilter('correct')" id="f-correct">Correct</button>
-    <button class="filter-btn" onclick="setFilter('wrong')" id="f-wrong">Wrong</button>
-    <button class="filter-btn" onclick="setFilter('pending')" id="f-pending">Pending</button>
-    <button class="filter-btn" onclick="setFilter('high')" id="f-high">High Confidence</button>
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-btn active" onclick="setFilter('all',this)">All</div>
+    <div class="filter-btn" onclick="setFilter('correct',this)">Correct</div>
+    <div class="filter-btn" onclick="setFilter('wrong',this)">Wrong</div>
+    <div class="filter-btn" onclick="setFilter('pending',this)">Pending</div>
+    <div class="filter-btn" onclick="setFilter('high',this)">High Confidence</div>
   </div>
 
-  <!-- PREDICTIONS LIST -->
-  <div class="predictions-list" id="predList">
-    <div style="text-align:center;padding:32px;color:var(--text-dim);font-size:13px">
-      <span class="spinner"></span>Loading prediction history…
+  <!-- LIST -->
+  <div id="predList" class="pred-list">
+    <div style="text-align:center;padding:40px;color:var(--t3);font-size:12px;">
+      <span class="spinner"></span> Loading…
     </div>
   </div>
 
 </div>
 
 <script>
-/* ═══════════════════════════════════════
-   STATE
-═══════════════════════════════════════ */
-var allPredictions = [];
-var currentFilter = 'all';
-var LS_KEY = 'stratos_predictions'; // shared with predictions.html
+var LS_PREDS = 'stratos_predictions';
+var LS_BETS = 'stratos_bets';
+var CURRENT_FILTER = 'all';
+var ALL_PREDS = [];
 
-/* ═══════════════════════════════════════
-   DEMO PREDICTIONS DATA
-   In production these come from localStorage
-   saved when user views AI analysis on predictions.html
-   For demo we seed realistic World Cup 2026 data
-═══════════════════════════════════════ */
-var DEMO_DATA = [
-  {
-    id:'pred-1',fixtureId:1489380,
-    match:'Spain vs Cape Verde Islands',league:'World Cup',
-    homeTeam:'Spain',awayTeam:'Cape Verde Islands',
-    homeLogo:'https://media.api-sports.io/football/teams/9.png',
-    awayLogo:'https://media.api-sports.io/football/teams/1533.png',
-    kickoff:'2026-06-15T16:00:00+00:00',
-    verdict:'Draw',confidence:'Medium',
-    analysis:'Despite Spain\'s quality, Cape Verde are defensively organized and capable of frustrating top sides. The xG models suggest Spain will dominate possession but struggle to convert.',
-    tip:'Cape Verde\'s compact low block could neutralize Spain\'s creative play.',
-    result:'X',settled:true,won:true,finalScore:'0 - 0',
-    timestamp:'2026-06-15T15:00:00Z'
-  },
-  {
-    id:'pred-2',fixtureId:1489377,
-    match:'Belgium vs Egypt',league:'World Cup',
-    homeTeam:'Belgium',awayTeam:'Egypt',
-    homeLogo:'https://media.api-sports.io/football/teams/1.png',
-    awayLogo:'https://media.api-sports.io/football/teams/32.png',
-    kickoff:'2026-06-15T19:00:00+00:00',
-    verdict:'Belgium Win',confidence:'High',
-    analysis:'Belgium\'s attacking depth and xG advantage of 1.98 vs 1.12 gives them a clear edge. Egypt\'s defensive record has been inconsistent.',
-    tip:'Belgium\'s midfield creativity should unlock Egypt\'s defensive shape.',
-    result:'X',settled:true,won:false,finalScore:'1 - 1',
-    timestamp:'2026-06-15T18:00:00Z'
-  },
-  {
-    id:'pred-3',fixtureId:1489379,
-    match:'Saudi Arabia vs Uruguay',league:'World Cup',
-    homeTeam:'Saudi Arabia',awayTeam:'Uruguay',
-    homeLogo:'https://media.api-sports.io/football/teams/23.png',
-    awayLogo:'https://media.api-sports.io/football/teams/7.png',
-    kickoff:'2026-06-15T22:00:00+00:00',
-    verdict:'Uruguay Win',confidence:'Medium',
-    analysis:'Uruguay\'s clinical finishing and xG of 1.62 vs Saudi Arabia\'s 1.28 suggests a narrow away win. Saudi Arabia showed improvement but faces a tough test.',
-    tip:'Uruguay\'s set-piece threat could be decisive in a tight match.',
-    result:'X',settled:true,won:false,finalScore:'1 - 1',
-    timestamp:'2026-06-15T21:00:00Z'
-  },
-  {
-    id:'pred-4',fixtureId:1489378,
-    match:'Iran vs New Zealand',league:'World Cup',
-    homeTeam:'Iran',awayTeam:'New Zealand',
-    homeLogo:'https://media.api-sports.io/football/teams/22.png',
-    awayLogo:'https://media.api-sports.io/football/teams/4673.png',
-    kickoff:'2026-06-16T01:00:00+00:00',
-    verdict:'Draw',confidence:'Medium',
-    analysis:'Both teams are evenly matched with similar xG profiles. Iran\'s home support is a factor but New Zealand has shown resilience in qualifying.',
-    tip:'Expect a tight contest with both teams settling for a point.',
-    result:'X',settled:true,won:true,finalScore:'2 - 2',
-    timestamp:'2026-06-16T00:00:00Z'
-  },
-  {
-    id:'pred-5',fixtureId:1489383,
-    match:'France vs Senegal',league:'World Cup',
-    homeTeam:'France',awayTeam:'Senegal',
-    homeLogo:'https://media.api-sports.io/football/teams/2.png',
-    awayLogo:'https://media.api-sports.io/football/teams/13.png',
-    kickoff:'2026-06-16T19:00:00+00:00',
-    verdict:'France Win',confidence:'High',
-    analysis:'France\'s world-class attack averaging 2.60 goals per game should overwhelm Senegal. The xG differential of 2.18 vs 1.42 strongly favors Les Bleus.',
-    tip:'France\'s pace on the counter will expose Senegal\'s high defensive line.',
-    result:'1',settled:true,won:true,finalScore:'3 - 1',
-    timestamp:'2026-06-16T18:00:00Z'
-  },
-  {
-    id:'pred-6',fixtureId:1539016,
-    match:'Iraq vs Norway',league:'World Cup',
-    homeTeam:'Iraq',awayTeam:'Norway',
-    homeLogo:'https://media.api-sports.io/football/teams/1567.png',
-    awayLogo:'https://media.api-sports.io/football/teams/1090.png',
-    kickoff:'2026-06-16T22:00:00+00:00',
-    verdict:'Norway Win',confidence:'Medium',
-    analysis:'Norway\'s impressive qualifying campaign and xG of 1.94 vs Iraq\'s 1.38 suggests an away win. Iraq may struggle against Norway\'s physical style.',
-    tip:'Norway\'s aerial threat from set pieces could be the difference.',
-    result:null,settled:false,won:null,finalScore:null,
-    timestamp:'2026-06-16T21:00:00Z'
-  },
-];
-
-/* ═══════════════════════════════════════
-   LOAD & MERGE DATA
-   Real predictions saved from predictions.html
-   merged with demo data
-═══════════════════════════════════════ */
+/* ══ LOAD PREDICTIONS ══ */
 function loadPredictions(){
-  var real = [];
   try{
-    var raw = localStorage.getItem('stratos_predictions');
-    real = raw ? JSON.parse(raw) : [];
-  }catch(e){ real=[]; }
-
-  var realIds = real.map(function(p){ return p.fixtureId; });
-  var demo = DEMO_DATA.filter(function(p){ return !realIds.includes(p.fixtureId); });
-
-  allPredictions = real.concat(demo).sort(function(a,b){
-    return new Date(b.timestamp) - new Date(a.timestamp);
-  });
-
-  renderStats();
-  renderPredictions();
-  renderWeeklyChart();
-  autoSettleDemoData();
+    var raw = localStorage.getItem(LS_PREDS);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){return [];}
 }
 
-/* ═══════════════════════════════════════
-   RENDER STATS
-═══════════════════════════════════════ */
-function renderStats(){
-  var settled = allPredictions.filter(function(p){ return p.settled; });
-  var correct = settled.filter(function(p){ return p.won; });
-  var pending = allPredictions.filter(function(p){ return !p.settled; });
-  var accuracy = settled.length ? Math.round((correct.length/settled.length)*100) : 0;
+function savePredictions(preds){
+  try{localStorage.setItem(LS_PREDS, JSON.stringify(preds));}catch(e){}
+}
 
-  document.getElementById('statTotal').textContent = allPredictions.length;
+/* ══ AUTO-SETTLE predictions from bet results ══ */
+async function settlePredictions(){
+  var preds = loadPredictions();
+  var updated = false;
+  var pending = preds.filter(function(p){return !p.settled;});
+
+  for(var i=0;i<pending.length;i++){
+    var pred = pending[i];
+    if(!pred.kickoff || new Date(pred.kickoff) > new Date()) continue;
+    try{
+      var r = await fetch('https://stratosai.bet/.netlify/functions/check-results?fixtureId='+pred.fixtureId);
+      var d = await r.json();
+      if(d.finished && d.result){
+        var idx = preds.findIndex(function(p){return p.id===pred.id;});
+        if(idx>=0){
+          preds[idx].settled = true;
+          preds[idx].result = d.result;
+          preds[idx].finalScore = d.homeGoals+'-'+d.awayGoals;
+          // Check if verdict matches result
+          var verdict = pred.verdict || '';
+          var home = (pred.homeTeam||'').toLowerCase();
+          var away = (pred.awayTeam||'').toLowerCase();
+          var vLower = verdict.toLowerCase();
+          var predictedWinner = vLower.includes('draw') ? 'X' :
+            (vLower.includes(home) || vLower.includes('home')) ? '1' : '2';
+          preds[idx].won = predictedWinner === d.result;
+          updated = true;
+        }
+      }
+    }catch(e){}
+  }
+  if(updated) savePredictions(preds);
+  return preds;
+}
+
+/* ══ RENDER STATS ══ */
+function renderStats(preds){
+  var settled = preds.filter(function(p){return p.settled;});
+  var correct = settled.filter(function(p){return p.won;});
+  var wrong = settled.filter(function(p){return !p.won;});
+  var pending = preds.filter(function(p){return !p.settled;});
+  var acc = settled.length ? Math.round((correct.length/settled.length)*100) : 0;
+
+  document.getElementById('statTotal').textContent = preds.length;
   document.getElementById('statCorrect').textContent = correct.length;
+  document.getElementById('statWrong').textContent = wrong.length;
   document.getElementById('statPending').textContent = pending.length;
-  document.getElementById('statAccuracy').textContent = settled.length ? accuracy+'%' : '—';
-  document.getElementById('ringPct').textContent = settled.length ? accuracy+'%' : '—';
+  document.getElementById('accPct').textContent = settled.length ? acc+'%' : '—';
 
-  // Animate ring
+  // Ring animation
+  var ring = document.getElementById('ringFill');
+  var circumference = 283;
+  var offset = circumference - (acc/100)*circumference;
+  ring.style.strokeDashoffset = circumference;
+  setTimeout(function(){ring.style.transition='stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1)';ring.style.strokeDashoffset=offset;},100);
+  ring.style.stroke = acc>=70?'var(--g)':acc>=50?'var(--o)':'var(--r)';
+  document.getElementById('accPct').style.color = acc>=70?'var(--g)':acc>=50?'var(--o)':'var(--r)';
+
+  // Confidence bars
+  var byConf = {High:[],Medium:[],Low:[]};
+  settled.forEach(function(p){var c=p.confidence||'Low';if(!byConf[c])byConf[c]=[];byConf[c].push(p);});
+  function confAcc(arr){return arr.length?Math.round((arr.filter(function(p){return p.won;}).length/arr.length)*100):0;}
+  
   if(settled.length){
-    var circumference = 2 * Math.PI * 64; // r=64
-    var offset = circumference * (1 - accuracy/100);
-    setTimeout(function(){
-      document.getElementById('accuracyRingCircle').style.strokeDashoffset = offset;
-    }, 200);
-  }
-
-  // Confidence breakdown
-  var confLevels = ['High','Medium','Low'];
-  var confData = confLevels.map(function(level){
-    var group = settled.filter(function(p){ return p.confidence===level; });
-    var groupCorrect = group.filter(function(p){ return p.won; });
-    return {level:level, total:group.length, correct:groupCorrect.length,
-      rate: group.length ? Math.round((groupCorrect.length/group.length)*100) : null};
-  }).filter(function(d){ return d.total > 0; });
-
-  if(confData.length){
     document.getElementById('confSection').style.display='block';
-    document.getElementById('confBreakdown').innerHTML = confData.map(function(d){
-      var color = d.level==='High'?'#39FF7A':d.level==='Medium'?'#FF9D2E':'#8fc6cf';
-      return '<div class="conf-row">'+
-        '<span class="conf-label" style="color:'+color+'">'+d.level+'</span>'+
-        '<div class="conf-bar-wrap"><div class="conf-bar" style="width:'+(d.rate||0)+'%;background:'+color+'"></div></div>'+
-        '<span class="conf-stat">'+d.correct+'/'+d.total+' · '+(d.rate!==null?d.rate+'%':'—')+'</span>'+
-      '</div>';
-    }).join('');
+    var hAcc=confAcc(byConf.High),mAcc=confAcc(byConf.Medium),lAcc=confAcc(byConf.Low);
+    document.getElementById('confHighBar').style.width=hAcc+'%';
+    document.getElementById('confMedBar').style.width=mAcc+'%';
+    document.getElementById('confLowBar').style.width=lAcc+'%';
+    document.getElementById('confHighStat').textContent=byConf.High.length?hAcc+'% ('+byConf.High.length+')':'—';
+    document.getElementById('confMedStat').textContent=byConf.Medium.length?mAcc+'% ('+byConf.Medium.length+')':'—';
+    document.getElementById('confLowStat').textContent=byConf.Low.length?lAcc+'% ('+byConf.Low.length+')':'—';
   }
 }
 
-/* ═══════════════════════════════════════
-   FILTER
-═══════════════════════════════════════ */
-function setFilter(f){
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('f-'+f).classList.add('active');
-  renderPredictions();
-}
+/* ══ RENDER PREDICTIONS ══ */
+function renderPredictions(preds, filter){
+  var filtered = preds;
+  if(filter==='correct') filtered=preds.filter(function(p){return p.settled&&p.won;});
+  else if(filter==='wrong') filtered=preds.filter(function(p){return p.settled&&!p.won;});
+  else if(filter==='pending') filtered=preds.filter(function(p){return !p.settled;});
+  else if(filter==='high') filtered=preds.filter(function(p){return p.confidence==='High';});
 
-function getFiltered(){
-  return allPredictions.filter(function(p){
-    if(currentFilter==='correct') return p.settled && p.won;
-    if(currentFilter==='wrong') return p.settled && !p.won;
-    if(currentFilter==='pending') return !p.settled;
-    if(currentFilter==='high') return p.confidence==='High';
-    return true;
-  });
-}
-
-/* ═══════════════════════════════════════
-   RENDER PREDICTIONS
-═══════════════════════════════════════ */
-function renderPredictions(){
-  var list = getFiltered();
   var el = document.getElementById('predList');
 
-  if(!list.length){
+  if(!preds.length){
     el.innerHTML='<div class="empty-state">'+
-      '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>'+
-      '<h3>No predictions found</h3>'+
-      '<p>Try a different filter, or visit the Sportsbook to see AI predictions for upcoming matches.</p>'+
-      '<a href="index.html" style="display:inline-block;margin-top:16px;padding:10px 22px;border-radius:999px;font-size:13px;font-weight:700;border:1px solid var(--border-blue, rgba(0,229,255,.2));color:#00E5FF;background:rgba(0,229,255,.06)">Go to Sportsbook →</a>'+
+      '<div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.5"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>'+
+      '<div class="empty-title">No predictions yet</div>'+
+      '<div class="empty-sub">Open any match on the Sportsbook and tap to get the AI analysis. Predictions will appear here automatically.</div>'+
+      '<a href="index.html" class="empty-cta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>Open Sportsbook</a>'+
     '</div>';
     return;
   }
 
-  el.innerHTML = list.map(function(p){
-    var kickoff = new Date(p.kickoff);
-    var timeStr = kickoff.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-    var statusClass = p.settled ? (p.won?'won':'lost') : 'pending';
-    var statusText = p.settled ? (p.won ? 'Correct' : 'Wrong') : 'Pending';
-    var scoreHtml = p.settled && p.finalScore
-      ? '<div class="pred-score">'+p.finalScore+'</div>'
-      : '<div class="pred-score pending">vs</div>';
-    var confColor = p.confidence==='High'?'#39FF7A':p.confidence==='Medium'?'#FF9D2E':'#8fc6cf';
-    var aiResultClass = p.settled ? (p.won?'correct':'wrong') : 'pending';
-    var aiResultText = p.settled ? (p.won?'Correct':'Wrong') : 'Pending';
+  if(!filtered.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:12px;">No '+filter+' predictions.</div>';
+    return;
+  }
 
+  el.innerHTML = filtered.map(function(p){
+    var statusClass = p.settled ? (p.won?'correct':'wrong') : 'pending';
+    var statusBadge = p.settled ? (p.won?'<span class="pred-status ps-correct">Correct</span>':'<span class="pred-status ps-wrong">Wrong</span>') : '<span class="pred-status ps-pending">Pending</span>';
+    var ko = p.kickoff ? new Date(p.kickoff) : null;
+    var timeStr = ko ? ko.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' · '+ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '';
+    var confColor = p.confidence==='High'?'var(--g)':p.confidence==='Medium'?'var(--o)':'var(--t2)';
+    var scoreStr = p.finalScore ? ' · Final: <strong>'+p.finalScore+'</strong>' : '';
+    
     return '<div class="pred-card '+statusClass+'">'+
-      '<div class="pred-top">'+
-        '<span class="pred-league">'+p.league+'</span>'+
+      '<div class="pred-head">'+
+        '<span class="pred-league">'+( p.league||'Match')+'</span>'+
+        statusBadge+
         '<span class="pred-time">'+timeStr+'</span>'+
-        '<span class="pred-status '+statusClass+'">'+statusText+'</span>'+
       '</div>'+
-      '<div class="pred-match">'+
-        '<div class="pred-team">'+
-          (p.homeLogo?'<img src="'+p.homeLogo+'" width="24" height="24" style="object-fit:contain" onerror="this.style.display=\'none\'">':'')+
-          '<span class="pred-team-name">'+p.homeTeam+'</span>'+
+      '<div class="pred-body">'+
+        '<div class="pred-match">'+p.match+'</div>'+
+        (scoreStr?'<div class="pred-score" style="color:'+(p.won?'var(--g)':'var(--r)')+'">'+scoreStr+'</div>':'')+
+        '<div class="pred-ai-row">'+
+          '<div class="pred-verdict"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>'+p.verdict+'</div>'+
+          '<span class="pred-conf" style="color:'+confColor+';border:1px solid '+confColor+'22;background:'+confColor+'0f">'+p.confidence+'</span>'+
         '</div>'+
-        scoreHtml+
-        '<div class="pred-team" style="justify-content:flex-end">'+
-          '<span class="pred-team-name" style="text-align:right">'+p.awayTeam+'</span>'+
-          (p.awayLogo?'<img src="'+p.awayLogo+'" width="24" height="24" style="object-fit:contain" onerror="this.style.display=\'none\'">':'')+
-        '</div>'+
+        (p.analysis?'<div class="pred-analysis">'+p.analysis+'</div>':'')+
       '</div>'+
-      '<div class="pred-ai">'+
-        '<div class="pred-ai-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>'+
-        '<div class="pred-ai-verdict">'+p.verdict+'</div>'+
-        '<span class="pred-ai-conf" style="color:'+confColor+';border:1px solid '+confColor+'40;background:'+confColor+'12;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px">'+p.confidence+'</span>'+
-        '<span class="pred-ai-result '+aiResultClass+'">'+aiResultText+'</span>'+
-      '</div>'+
-      (p.analysis?'<div style="font-size:11px;color:var(--text-muted);line-height:1.6;margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.02);border:1px solid var(--border)">'+p.analysis+'</div>':'')+
     '</div>';
   }).join('');
 }
 
-/* ═══════════════════════════════════════
-   SAVE PREDICTION (called from predictions.html)
-   When AI analysis is shown, we save prediction
-═══════════════════════════════════════ */
-function savePrediction(pred){
-  var preds = [];
-  try{ preds = JSON.parse(localStorage.getItem('stratos_predictions')||'[]'); }catch(e){}
-  var exists = preds.findIndex(function(p){ return p.fixtureId===pred.fixtureId; });
-  if(exists < 0) preds.unshift(pred);
-  try{ localStorage.setItem('stratos_predictions', JSON.stringify(preds.slice(0,200))); }catch(e){}
+/* ══ FILTER ══ */
+function setFilter(f, btn){
+  CURRENT_FILTER = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderPredictions(ALL_PREDS, f);
 }
 
-// Init
-async function autoSettleDemoData(){
-  var pending = allPredictions.filter(function(p){
-    return !p.settled && new Date(p.kickoff) < new Date();
-  });
-  if(!pending.length) return;
-
-  var updated = false;
-  for(var i=0; i<pending.length; i++){
-    var pred = pending[i];
-    try{
-      var res = await fetch('/.netlify/functions/check-results?fixtureId='+pred.fixtureId);
-      var data = await res.json();
-      if(data.finished && data.result){
-        var idx = allPredictions.findIndex(function(p){ return p.fixtureId===pred.fixtureId; });
-        if(idx>=0){
-          allPredictions[idx].settled = true;
-          allPredictions[idx].result = data.result;
-          allPredictions[idx].finalScore = data.homeGoals+' - '+data.awayGoals;
-          allPredictions[idx].won = (
-            (pred.verdict.includes('Draw') && data.result==='X') ||
-            (pred.verdict.toLowerCase().includes(pred.homeTeam.toLowerCase()) && data.result==='1') ||
-            (pred.verdict.toLowerCase().includes(pred.awayTeam.toLowerCase()) && data.result==='2')
-          );
-          updated = true;
-        }
-        var dIdx = DEMO_DATA.findIndex(function(p){ return p.fixtureId===pred.fixtureId; });
-        if(dIdx>=0){
-          DEMO_DATA[dIdx].settled = true;
-          DEMO_DATA[dIdx].result = data.result;
-          DEMO_DATA[dIdx].finalScore = data.homeGoals+' - '+data.awayGoals;
-          DEMO_DATA[dIdx].won = allPredictions[allPredictions.findIndex(function(p){ return p.fixtureId===pred.fixtureId; })].won;
-        }
-      }
-    }catch(e){ /* skip */ }
-  }
-  if(updated){ renderStats(); renderPredictions(); renderWeeklyChart(); }
-}
-
-/* ═══════════════════════════════════════
-   WEEKLY PERFORMANCE CHART
-═══════════════════════════════════════ */
-function renderWeeklyChart(){
-  var settled = allPredictions.filter(function(p){ return p.settled; });
-  if(settled.length < 2){ 
-    var ws = document.getElementById('weeklySection');
-    if(ws) ws.style.display='none'; 
-    return; 
+/* ══ INIT ══ */
+async function init(){
+  document.getElementById('predList').innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:12px;"><span class="spinner"></span> Checking results…</div>';
+  
+  // Settle pending predictions
+  ALL_PREDS = await settlePredictions();
+  
+  // If no predictions in localStorage, show empty state
+  if(!ALL_PREDS.length){
+    ALL_PREDS = loadPredictions();
   }
 
-  var weeks = {};
-  settled.forEach(function(p){
-    var d = new Date(p.kickoff);
-    var weekKey = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-    if(!weeks[weekKey]) weeks[weekKey]={correct:0,total:0};
-    weeks[weekKey].total++;
-    if(p.won) weeks[weekKey].correct++;
-  });
+  // Sort newest first
+  ALL_PREDS.sort(function(a,b){return new Date(b.timestamp||0)-new Date(a.timestamp||0);});
 
-  var labels = Object.keys(weeks);
-  var data = labels.map(function(w){ return Math.round((weeks[w].correct/weeks[w].total)*100); });
-  var maxVal = Math.max.apply(null, data) || 100;
-
-  var bars = labels.map(function(label, i){
-    var pct = data[i];
-    var color = pct >= 60 ? '#39FF7A' : pct >= 40 ? '#FF9D2E' : '#ff5c7a';
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">'+
-      '<div style="font-size:11px;font-weight:700;color:'+color+'">'+pct+'%</div>'+
-      '<div style="width:100%;background:rgba(255,255,255,.05);border-radius:6px;overflow:hidden;height:80px;display:flex;align-items:flex-end">'+
-        '<div style="width:100%;height:'+(pct/maxVal*100)+'%;background:'+color+';border-radius:6px 6px 0 0;transition:height .8s cubic-bezier(.16,1,.3,1)"></div>'+
-      '</div>'+
-      '<div style="font-size:10px;color:var(--text-dim);text-align:center">'+label+'</div>'+
-      '<div style="font-size:9px;color:var(--text-dim)">'+weeks[label].correct+'/'+weeks[label].total+'</div>'+
-    '</div>';
-  }).join('');
-
-  var ws = document.getElementById('weeklySection');
-  if(ws){
-    ws.style.display='block';
-    var wc = document.getElementById('weeklyChart');
-    if(wc) wc.innerHTML = '<div style="display:flex;gap:8px;align-items:flex-end;padding:16px">'+bars+'</div>';
-  }
+  renderStats(ALL_PREDS);
+  renderPredictions(ALL_PREDS, CURRENT_FILTER);
 }
 
-loadPredictions();
-
-function toggleDraw(){
-  var h=document.getElementById('ham'),d=document.getElementById('mobDraw');
-  h.classList.toggle('open'); d.classList.toggle('open');
-}
-window.addEventListener('scroll',function(){
-  document.getElementById('ham').classList.remove('open');
-  document.getElementById('mobDraw').classList.remove('open');
-},{passive:true});
+init();
 </script>
 </body>
 </html>
