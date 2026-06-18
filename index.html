@@ -433,6 +433,93 @@ input{font-family:inherit;}
   .team-name{font-size:10px;}
   .odd-val{font-size:11px;}
 }
+
+
+/* ════════════════════════
+   LIVE SCORES
+════════════════════════ */
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.4}}
+.live-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 7px;border-radius:999px;font-size:8px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.3);color:var(--r);
+  flex-shrink:0;
+}
+.live-badge-dot{width:5px;height:5px;border-radius:50%;background:var(--r);animation:livePulse 1s infinite;flex-shrink:0;}
+.live-score{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.15);
+  border-radius:7px;padding:5px 10px;margin:0 12px 8px;
+}
+.live-score-teams{flex:1;font-size:11px;}
+.live-score-home{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.live-score-away{display:flex;justify-content:space-between;align-items:center;}
+.live-score-name{font-size:11px;font-weight:600;color:var(--t1);}
+.live-score-goal{font-size:14px;font-weight:900;color:#fff;}
+.live-score-goal.winning{color:var(--g);}
+.live-score-minute{
+  font-size:10px;font-weight:800;color:var(--r);
+  border-left:1px solid rgba(244,63,94,.2);padding-left:8px;flex-shrink:0;
+}
+.ft-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 7px;border-radius:999px;font-size:8px;font-weight:800;
+  background:rgba(0,232,122,.08);border:1px solid rgba(0,232,122,.2);color:var(--g);
+  flex-shrink:0;
+}
+.live-section-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 11px;margin-bottom:5px;margin-top:8px;
+  background:rgba(244,63,94,.04);border-radius:8px;
+  border:1px solid rgba(244,63,94,.15);
+}
+.live-section-label{font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--r);text-transform:uppercase;flex:1;}
+.live-count{font-size:10px;color:var(--t3);}
+
+/* ════════════════════════
+   FOOTER
+════════════════════════ */
+.footer{
+  background:#080a0f;border-top:1px solid var(--line2);
+  padding:28px 16px 20px;margin-top:0;
+}
+.footer-inner{max-width:1360px;margin:0 auto;}
+.footer-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:20px;}
+.footer-brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900;letter-spacing:.07em;color:#fff;margin-bottom:8px;}
+.footer-brand-icon{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#00c8ff,#0062ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.footer-tagline{font-size:11px;color:var(--t3);line-height:1.6;max-width:240px;}
+.footer-links{display:flex;gap:32px;flex-wrap:wrap;}
+.footer-col-title{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--t2);text-transform:uppercase;margin-bottom:10px;}
+.footer-link{display:block;font-size:11px;color:var(--t3);margin-bottom:6px;cursor:pointer;transition:color .15s;}
+.footer-link:hover{color:var(--t2);}
+.footer-bottom{border-top:1px solid var(--line);padding-top:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.footer-copy{font-size:10px;color:var(--t3);}
+.footer-rg{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.15);font-size:10px;font-weight:700;color:var(--r);}
+.footer-chain{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--t3);}
+.footer-chain-dot{width:6px;height:6px;border-radius:50%;background:var(--o);}
+
+/* ════════════════════════
+   LEGAL MODALS
+════════════════════════ */
+.legal-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);padding:16px;}
+.legal-overlay.show{display:flex;}
+.legal-modal{background:#13161e;border:1px solid var(--line2);border-radius:14px;width:100%;max-width:560px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;animation:pop .2s cubic-bezier(.16,1,.3,1);}
+.legal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line2);flex-shrink:0;}
+.legal-title{font-size:14px;font-weight:800;color:#fff;}
+.legal-close{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.05);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;-webkit-tap-highlight-color:transparent;transition:background .15s;}
+.legal-close:hover{background:rgba(255,255,255,.1);}
+.legal-body{overflow-y:auto;padding:20px;flex:1;}
+.legal-body h3{font-size:12px;font-weight:800;color:var(--t1);margin:16px 0 6px;text-transform:uppercase;letter-spacing:.06em;}
+.legal-body h3:first-child{margin-top:0;}
+.legal-body p{font-size:12px;color:var(--t2);line-height:1.75;margin-bottom:10px;}
+.legal-body ul{padding-left:16px;margin-bottom:10px;}
+.legal-body li{font-size:12px;color:var(--t2);line-height:1.75;margin-bottom:4px;}
+.legal-rg-box{background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);border-radius:8px;padding:14px;margin-bottom:14px;}
+.legal-rg-title{font-size:11px;font-weight:800;color:var(--r);margin-bottom:6px;}
+.legal-rg-text{font-size:11px;color:var(--t2);line-height:1.7;}
+.legal-hotline{display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 12px;border-radius:7px;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.12);font-size:11px;font-weight:600;color:var(--c);}
+
 </style>
 </head>
 <body>
@@ -500,6 +587,13 @@ input{font-family:inherit;}
     <!-- League filter -->
     <div class="lf-wrap" id="lfWrap">
       <div class="lf active" onclick="filterLeague('all',this)">All Leagues</div>
+    </div>
+
+    <!-- Live section bar (hidden until live matches exist) -->
+    <div class="live-section-bar" id="liveSecBar" style="display:none">
+      <span class="live-badge-dot" style="width:6px;height:6px;border-radius:50%;background:var(--r);animation:livePulse 1s infinite;box-shadow:0 0 5px var(--r)"></span>
+      <span class="live-section-label">Live Now</span>
+      <span class="live-count" id="liveCount"></span>
     </div>
 
     <!-- Section bar -->
@@ -581,6 +675,57 @@ input{font-family:inherit;}
 </div>
 
 <!-- TOAST -->
+
+
+<!-- FOOTER -->
+<footer class="footer" id="mainFooter">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">
+          <div class="footer-brand-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>
+          STRATOS<span style="color:var(--c)">AI</span>
+        </div>
+        <div class="footer-tagline">AI-powered sports predictions on BNB Chain. Real odds. Real analysis. No KYC.</div>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <a href="https://x.com/stratosaig" target="_blank" style="width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--t2);transition:color .15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <a href="https://t.me/stratosAi_official" target="_blank" style="width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--t2);transition:color .15s;" onmouseover="this.style.color='#29b6f6'" onmouseout="this.style.color=''">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.7 8c-.12.54-.46.67-.93.42l-2.58-1.9-1.24 1.19c-.14.14-.25.25-.51.25l.18-2.61 4.7-4.24c.2-.18-.05-.28-.32-.1L7.27 14.4l-2.52-.79c-.55-.17-.56-.55.12-.81l9.82-3.79c.46-.17.86.11.95.79z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div>
+          <div class="footer-col-title">Platform</div>
+          <span class="footer-link" onclick="location.href='history.html'">AI Predictions</span>
+          <span class="footer-link" onclick="location.href='demo.html'">How It Works</span>
+          <span class="footer-link" onclick="window.open('https://stratosa.netlify.app','_blank')">Main Site</span>
+        </div>
+        <div>
+          <div class="footer-col-title">Legal</div>
+          <span class="footer-link" onclick="openLegal('terms')">Terms of Service</span>
+          <span class="footer-link" onclick="openLegal('privacy')">Privacy Policy</span>
+          <span class="footer-link" onclick="openLegal('rg')">Responsible Gambling</span>
+        </div>
+        <div>
+          <div class="footer-col-title">Blockchain</div>
+          <div class="footer-chain"><span class="footer-chain-dot"></span>BNB Chain</div>
+          <span class="footer-link" style="margin-top:6px" onclick="window.open('https://bscscan.com','_blank')">BSCScan</span>
+          <span class="footer-link" onclick="window.open('https://stratosa.netlify.app','_blank')">Whitepaper</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 STRATOS AI · All rights reserved · Demo version</div>
+      <div class="footer-rg">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        18+ · Gamble Responsibly
+      </div>
+    </div>
+  </div>
+</footer>
 
 <!-- WALLET MODAL -->
 <div class="w-overlay" id="walletOverlay" onclick="closeWalletModal(event)">
@@ -808,6 +953,103 @@ function lc(name){
   return{c:'#4b5563',d:'#4b5563'};
 }
 
+/* ══ LIVE SCORES STATE ══ */
+var LIVE_DATA = {}; // fixtureId -> {status, homeGoals, awayGoals, minute}
+var LIVE_INTERVAL = null;
+
+async function fetchLiveScores(){
+  var now = new Date();
+  var toCheck = S_ALL.filter(function(m){
+    var ko = new Date(m.kickoff);
+    var diff = (now - ko) / 60000; // minutes since kickoff
+    return diff > -5 && diff < 130; // started or about to start
+  });
+  if(!toCheck.length) return;
+
+  for(var i=0;i<toCheck.length;i++){
+    var m = toCheck[i];
+    try{
+      var r = await fetch('/.netlify/functions/check-results?fixtureId='+m.id);
+      var d = await r.json();
+      var oldData = LIVE_DATA[m.id];
+      LIVE_DATA[m.id] = d;
+      // Only update DOM if data changed
+      if(!oldData || oldData.status !== d.status || oldData.homeGoals !== d.homeGoals || oldData.awayGoals !== d.awayGoals){
+        updateMatchLiveUI(m, d);
+      }
+    }catch(e){}
+  }
+
+  // Show live section bar if any live matches
+  var hasLive = Object.values(LIVE_DATA).some(function(d){
+    return d.status && ['1H','2H','ET','HT','BT','LIVE'].includes(d.status);
+  });
+  var liveBar = document.getElementById('liveSecBar');
+  if(liveBar) liveBar.style.display = hasLive ? 'flex' : 'none';
+}
+
+function updateMatchLiveUI(m, d){
+  var row = document.getElementById('mr-'+m.id);
+  if(!row) return;
+
+  var isLive = ['1H','2H','ET','HT','BT','LIVE'].includes(d.status);
+  var isFT = ['FT','AET','PEN'].includes(d.status);
+  var hG = d.homeGoals !== null ? d.homeGoals : 0;
+  var aG = d.awayGoals !== null ? d.awayGoals : 0;
+
+  // Update time col
+  var tc = document.getElementById('tc-'+m.id);
+  if(tc){
+    if(isLive){
+      var minStr = d.minute ? d.minute+"'" : d.status;
+      tc.innerHTML = '<div class="live-badge"><span class="live-badge-dot"></span>LIVE</div>'+
+        '<div style="font-size:9px;font-weight:800;color:var(--r);margin-top:2px">'+minStr+'</div>';
+      row.style.borderColor = 'rgba(244,63,94,.25)';
+    } else if(isFT){
+      tc.innerHTML = '<div class="ft-badge">FT</div>'+
+        '<div style="font-size:9px;color:var(--t3);margin-top:2px">Ended</div>';
+      row.style.borderColor = 'rgba(0,232,122,.15)';
+    }
+  }
+
+  // Show/update live score box
+  if(isLive || isFT){
+    var existing = document.getElementById('ls-'+m.id);
+    var hWin = hG > aG, aWin = aG > hG;
+    var scoreHtml = '<div class="live-score" id="ls-'+m.id+'">'+
+      '<div class="live-score-teams">'+
+        '<div class="live-score-home">'+
+          '<span class="live-score-name">'+m.home+'</span>'+
+          '<span class="live-score-goal'+(hWin?' winning':'')+'">'+hG+'</span>'+
+        '</div>'+
+        '<div class="live-score-away">'+
+          '<span class="live-score-name">'+m.away+'</span>'+
+          '<span class="live-score-goal'+(aWin?' winning':'')+'">'+aG+'</span>'+
+        '</div>'+
+      '</div>'+
+      (isLive ? '<div class="live-score-minute">'+(d.minute?d.minute+"'":d.status)+'</div>' : '<div class="live-score-minute" style="color:var(--g)">FT</div>')+
+    '</div>';
+    if(existing){ existing.outerHTML = scoreHtml; }
+    else{
+      var detail = document.getElementById('md-'+m.id);
+      if(detail) detail.insertAdjacentHTML('beforebegin', scoreHtml);
+    }
+
+    // Disable odds if FT
+    if(isFT){
+      ['1','X','2'].forEach(function(pick){
+        var btn = document.getElementById('ob-'+m.id+'-'+pick);
+        if(btn){btn.style.opacity='.35';btn.style.pointerEvents='none';}
+      });
+    }
+  }
+}
+
+function startLivePolling(){
+  fetchLiveScores();
+  LIVE_INTERVAL = setInterval(fetchLiveScores, 45000); // every 45 seconds
+}
+
 /* ══ RENDER MATCHES ══ */
 function renderMatches(matches){
   if(!matches.length){
@@ -829,7 +1071,7 @@ function renderMatches(matches){
           '<span class="league-strip-name" style="color:'+lg.c+'">'+m.league+'</span>'+
         '</div>'+
         '<div class="match-main" onclick="toggleMatch('+m.id+')">'+
-          '<div class="match-time-col">'+
+          '<div class="match-time-col" id="tc-'+m.id+'">'+
             '<span class="match-time-date">'+day+'</span>'+
             '<span class="match-time-hour">'+hr+'</span>'+
           '</div>'+
@@ -1354,11 +1596,49 @@ if(typeof window.ethereum!=='undefined'){
   });
 }
 
+
+/* ══ LEGAL MODALS ══ */
+var LEGAL_CONTENT = {
+  terms: {
+    title: 'Terms of Service',
+    html: '<h3>1. Overview</h3><p>STRATOS AI is a decentralized sports prediction platform built on BNB Chain. By accessing or using the platform, you agree to these Terms of Service. This platform is currently in demo mode — no real funds are used or at risk.</p><h3>2. Eligibility</h3><p>You must be at least 18 years of age to use this platform. By using STRATOS AI, you confirm that you meet the minimum age requirement and that gambling is legal in your jurisdiction.</p><h3>3. Demo Mode</h3><p>All bets placed on this platform are currently in demo mode. No real cryptocurrency or funds are transferred. $STRAT token wagering will be enabled following the official presale and smart contract deployment on BNB Chain Mainnet.</p><h3>4. AI Predictions</h3><p>Predictions generated by STRATOS AI are based on statistical models and historical data. They do not constitute financial advice and do not guarantee outcomes. Past performance of AI predictions does not guarantee future results.</p><h3>5. Wallet Connection</h3><p>Connecting your wallet grants STRATOS AI read-only access to your public address. We do not request signing permissions or access to your private keys. Never share your seed phrase with anyone.</p><h3>6. Risk Disclosure</h3><p>Sports betting involves significant financial risk. Only bet what you can afford to lose. The platform is not responsible for any financial losses incurred through use of this service.</p><h3>7. Prohibited Uses</h3><ul><li>Using the platform in jurisdictions where online gambling is prohibited</li><li>Attempting to manipulate or exploit the platform</li><li>Using bots or automated systems to place bets</li><li>Money laundering or fraudulent activity</li></ul><h3>8. Changes to Terms</h3><p>STRATOS AI reserves the right to modify these terms at any time. Continued use of the platform constitutes acceptance of updated terms.</p>'
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    html: '<h3>1. Information We Collect</h3><p>STRATOS AI collects minimal data to provide its services. We do not require account registration or KYC verification in demo mode.</p><h3>2. Blockchain Data</h3><p>When you connect a wallet, your public blockchain address is visible to us. This is public information on the blockchain. We do not have access to your private keys or seed phrase.</p><h3>3. Local Storage</h3><p>Bet history and AI predictions are stored locally in your browser using localStorage. This data never leaves your device and is not transmitted to our servers.</p><h3>4. Analytics</h3><p>We may use basic analytics to understand platform usage. This data is anonymized and does not identify individual users.</p><h3>5. API Data</h3><p>Match data is fetched from third-party sports data providers. We do not share your data with these providers.</p><h3>6. Cookies</h3><p>This platform uses minimal cookies for session management only. We do not use tracking cookies or advertising cookies.</p><h3>7. Data Retention</h3><p>Since all user data is stored locally on your device, you can clear it at any time by clearing your browser data. We do not retain personal data on our servers.</p><h3>8. Contact</h3><p>For privacy-related inquiries, contact us on Telegram at @stratosAi_official or on X at @stratosaig.</p>'
+  },
+  rg: {
+    title: 'Responsible Gambling',
+    html: '<div class="legal-rg-box"><div class="legal-rg-title">Important Notice</div><div class="legal-rg-text">Gambling can be addictive and harmful. STRATOS AI is committed to promoting safe and responsible gambling. If you or someone you know has a gambling problem, please seek help immediately.</div></div><h3>Know the Signs</h3><ul><li>Spending more than you can afford to lose</li><li>Chasing losses with bigger bets</li><li>Gambling interfering with work, relationships, or daily life</li><li>Feeling anxious or irritable when not gambling</li><li>Borrowing money to gamble</li><li>Hiding gambling activity from family or friends</li></ul><h3>Our Commitments</h3><ul><li>This platform is strictly 18+ only</li><li>We do not target vulnerable individuals</li><li>We provide tools to set betting limits (coming at launch)</li><li>We support self-exclusion options (coming at launch)</li><li>Demo mode lets you enjoy predictions without financial risk</li></ul><h3>Set Limits</h3><p>When real wagering launches, STRATOS AI will offer deposit limits, loss limits, session time limits, and self-exclusion options to help you stay in control.</p><h3>Get Help</h3><div class="legal-hotline"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.61 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.17 6.17l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 17z"/></svg>National Problem Gambling Helpline: 1-800-522-4700</div><div class="legal-hotline" style="margin-top:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>BeGambleAware: www.begambleaware.org</div><div class="legal-hotline" style="margin-top:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Gamblers Anonymous: www.gamblersanonymous.org</div>'
+  }
+};
+
+function openLegal(type){
+  var content = LEGAL_CONTENT[type];
+  document.getElementById('legalTitle').textContent = content.title;
+  document.getElementById('legalBody').innerHTML = content.html;
+  document.getElementById('legalOverlay').classList.add('show');
+}
+function closeLegalModal(){document.getElementById('legalOverlay').classList.remove('show');}
+function closeLegal(e){if(e.target===document.getElementById('legalOverlay'))closeLegalModal();}
+
 /* ══ INIT ══ */
-loadMatches();
+loadMatches().then(function(){ startLivePolling(); });
 renderSlip();
 renderMobSlip();
 updateUserStats();
 </script>
+
+<!-- LEGAL MODALS -->
+<div class="legal-overlay" id="legalOverlay" onclick="closeLegal(event)">
+  <div class="legal-modal" onclick="event.stopPropagation()">
+    <div class="legal-head">
+      <span class="legal-title" id="legalTitle">Terms of Service</span>
+      <button class="legal-close" onclick="closeLegalModal()">✕</button>
+    </div>
+    <div class="legal-body" id="legalBody"></div>
+  </div>
+</div>
+
 </body>
 </html>
