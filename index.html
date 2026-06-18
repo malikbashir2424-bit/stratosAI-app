@@ -372,6 +372,44 @@ input{font-family:inherit;}
 .toast-note{font-size:9px;color:var(--t3);text-align:center;margin-bottom:14px;}
 .toast-close{display:block;width:100%;padding:10px;border-radius:7px;font-weight:700;font-size:12px;background:rgba(255,255,255,.05);color:var(--t1);-webkit-tap-highlight-color:transparent;}
 
+
+/* ════════════════════════
+   WALLET MODAL
+════════════════════════ */
+.w-overlay{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);padding:16px;}
+.w-overlay.show{display:flex;}
+.w-modal{background:#13161e;border:1px solid rgba(0,200,255,.15);border-radius:16px;width:100%;max-width:400px;overflow:hidden;animation:pop .22s cubic-bezier(.16,1,.3,1);}
+.w-modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line2);}
+.w-modal-title{font-size:15px;font-weight:800;color:#fff;}
+.w-modal-close{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.05);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;-webkit-tap-highlight-color:transparent;transition:background .15s;}
+.w-modal-close:hover{background:rgba(255,255,255,.1);color:#fff;}
+.w-modal-body{padding:16px;}
+.w-option{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;border-radius:10px;margin-bottom:6px;
+  border:1px solid var(--line2);background:var(--bg2);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:border-color .15s,background .15s;
+}
+.w-option:hover{border-color:rgba(0,200,255,.3);background:rgba(0,200,255,.05);}
+.w-option:last-child{margin-bottom:0;}
+.w-option-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.w-option-name{font-size:14px;font-weight:700;color:var(--t1);}
+.w-option-desc{font-size:11px;color:var(--t3);margin-top:2px;}
+.w-option-arrow{margin-left:auto;color:var(--t3);flex-shrink:0;}
+.w-modal-note{font-size:10px;color:var(--t3);text-align:center;padding:12px 16px;border-top:1px solid var(--line);}
+
+/* Connected state */
+.wallet-pill.connected{background:rgba(0,232,122,.08);border-color:rgba(0,232,122,.25);color:var(--g);}
+.w-addr{font-size:11px;font-weight:700;font-family:monospace;letter-spacing:.02em;}
+
+/* Connected modal */
+.w-connected{padding:20px;}
+.w-conn-addr{background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:10px 13px;font-family:monospace;font-size:12px;color:var(--t1);word-break:break-all;margin:10px 0;}
+.w-conn-net{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--o);margin-bottom:14px;}
+.w-disconnect{width:100%;padding:10px;border-radius:8px;font-size:12px;font-weight:700;background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);color:var(--r);-webkit-tap-highlight-color:transparent;transition:background .15s;}
+.w-disconnect:hover{background:rgba(244,63,94,.14);}
+
 /* ════════════════════════
    MOBILE OVERRIDES
 ════════════════════════ */
@@ -413,10 +451,10 @@ input{font-family:inherit;}
       <span class="live-dot"></span>
       AI Live
     </div>
-    <div class="wallet-pill">
+    <button class="wallet-pill" id="walletBtn" onclick="openWallet()" aria-label="Connect Wallet">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
-      Connect Wallet
-    </div>
+      <span id="walletBtnText">Connect Wallet</span>
+    </button>
     <button class="ham-btn" id="hamBtn" onclick="toggleDraw()" aria-label="Menu">
       <span class="hl"></span><span class="hl"></span><span class="hl"></span>
     </button>
@@ -543,6 +581,122 @@ input{font-family:inherit;}
 </div>
 
 <!-- TOAST -->
+
+<!-- WALLET MODAL -->
+<div class="w-overlay" id="walletOverlay" onclick="closeWalletModal(event)">
+  <div class="w-modal" onclick="event.stopPropagation()">
+
+    <!-- Not connected -->
+    <div id="wNotConnected">
+      <div class="w-modal-head">
+        <span class="w-modal-title">Connect Wallet</span>
+        <button class="w-modal-close" onclick="closeWallet()">✕</button>
+      </div>
+      <div class="w-modal-body">
+
+        <!-- MetaMask -->
+        <div class="w-option" onclick="connectMetaMask()">
+          <div class="w-option-icon" style="background:#f6851b22;border:1px solid #f6851b33;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M21 3L13.5 8.5L15 5.5L21 3Z" fill="#E2761B"/>
+              <path d="M3 3L10.4 8.55L9.05 5.5L3 3Z" fill="#E4761B"/>
+              <path d="M18.3 16.15L16.3 19.25L20.55 20.45L21.8 16.2L18.3 16.15Z" fill="#E4761B"/>
+              <path d="M2.25 16.2L3.45 20.45L7.7 19.25L5.7 16.15L2.25 16.2Z" fill="#E4761B"/>
+              <path d="M7.45 10.9L6.25 12.75L10.45 12.95L10.3 8.45L7.45 10.9Z" fill="#E4761B"/>
+              <path d="M16.55 10.9L13.65 8.4L13.55 12.95L17.75 12.75L16.55 10.9Z" fill="#E4761B"/>
+              <path d="M7.7 19.25L10.2 18L8.05 16.25L7.7 19.25Z" fill="#E4761B"/>
+              <path d="M13.8 18L16.3 19.25L15.95 16.25L13.8 18Z" fill="#E4761B"/>
+            </svg>
+          </div>
+          <div>
+            <div class="w-option-name">MetaMask</div>
+            <div class="w-option-desc">Browser extension wallet</div>
+          </div>
+          <svg class="w-option-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+
+        <!-- WalletConnect -->
+        <div class="w-option" onclick="connectWalletConnect()">
+          <div class="w-option-icon" style="background:#3b99fc22;border:1px solid #3b99fc33;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M6.1 8.6C9.35 5.47 14.65 5.47 17.9 8.6L18.3 8.98C18.47 9.14 18.47 9.4 18.3 9.56L16.9 10.9C16.82 10.98 16.68 10.98 16.6 10.9L16.05 10.37C13.8 8.2 10.2 8.2 7.95 10.37L7.36 10.94C7.28 11.02 7.14 11.02 7.06 10.94L5.66 9.6C5.49 9.44 5.49 9.18 5.66 9.02L6.1 8.6ZM20.65 11.23L21.9 12.43C22.07 12.59 22.07 12.85 21.9 13.01L16.18 18.55C16.01 18.71 15.73 18.71 15.56 18.55L11.5 14.62C11.46 14.58 11.39 14.58 11.35 14.62L7.3 18.55C7.13 18.71 6.85 18.71 6.68 18.55L0.95 13.01C0.78 12.85 0.78 12.59 0.95 12.43L2.2 11.23C2.37 11.07 2.65 11.07 2.82 11.23L6.87 15.16C6.91 15.2 6.98 15.2 7.02 15.16L11.07 11.23C11.24 11.07 11.52 11.07 11.69 11.23L15.74 15.16C15.78 15.2 15.85 15.2 15.89 15.16L19.94 11.23C20.11 11.07 20.48 11.07 20.65 11.23Z" fill="#3B99FC"/>
+            </svg>
+          </div>
+          <div>
+            <div class="w-option-name">WalletConnect</div>
+            <div class="w-option-desc">Trust Wallet, Rainbow & 300+ wallets</div>
+          </div>
+          <svg class="w-option-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+
+        <!-- Coinbase -->
+        <div class="w-option" onclick="connectCoinbase()">
+          <div class="w-option-icon" style="background:#0052ff22;border:1px solid #0052ff33;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#0052FF"/>
+              <path d="M12 7C9.24 7 7 9.24 7 12C7 14.76 9.24 17 12 17C14.76 17 17 14.76 17 12C17 9.24 14.76 7 12 7ZM10 13.5V10.5C10 10.22 10.22 10 10.5 10H13.5C13.78 10 14 10.22 14 10.5V13.5C14 13.78 13.78 14 13.5 14H10.5C10.22 14 10 13.78 10 13.5Z" fill="white"/>
+            </svg>
+          </div>
+          <div>
+            <div class="w-option-name">Coinbase Wallet</div>
+            <div class="w-option-desc">Easy-to-use crypto wallet</div>
+          </div>
+          <svg class="w-option-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+
+        <!-- OKX -->
+        <div class="w-option" onclick="connectOKX()">
+          <div class="w-option-icon" style="background:#ffffff0f;border:1px solid #ffffff18;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="2" width="9" height="9" rx="2" fill="white"/>
+              <rect x="13" y="2" width="9" height="9" rx="2" fill="white"/>
+              <rect x="2" y="13" width="9" height="9" rx="2" fill="white"/>
+              <rect x="13" y="13" width="9" height="9" rx="2" fill="white"/>
+            </svg>
+          </div>
+          <div>
+            <div class="w-option-name">OKX Wallet</div>
+            <div class="w-option-desc">Popular on BNB Chain</div>
+          </div>
+          <svg class="w-option-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+
+      </div>
+      <div class="w-modal-note">
+        By connecting, you agree to the Terms of Service. This is a demo — no real funds required.
+      </div>
+    </div>
+
+    <!-- Connected -->
+    <div id="wConnected" style="display:none">
+      <div class="w-modal-head">
+        <span class="w-modal-title">Wallet Connected</span>
+        <button class="w-modal-close" onclick="closeWallet()">✕</button>
+      </div>
+      <div class="w-connected">
+        <div class="w-conn-net">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--o);display:inline-block"></span>
+          BNB Chain
+        </div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:4px;">Connected address</div>
+        <div class="w-conn-addr" id="wAddress">—</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div style="background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-size:16px;font-weight:900;color:var(--c)" id="wBalance">0.00</div>
+            <div style="font-size:9px;color:var(--t3);margin-top:2px;">BNB Balance</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;">
+            <div style="font-size:16px;font-weight:900;color:var(--g)" id="wStratBalance">0</div>
+            <div style="font-size:9px;color:var(--t3);margin-top:2px;">$STRAT Balance</div>
+          </div>
+        </div>
+        <button class="w-disconnect" onclick="disconnectWallet()">Disconnect</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div class="toast-overlay" id="toastOverlay" onclick="closeToast()">
   <div class="toast" onclick="event.stopPropagation()">
     <div class="toast-icon">
@@ -1043,6 +1197,162 @@ window.addEventListener('scroll',function(){
   document.getElementById('hamBtn').classList.remove('open');
   document.getElementById('mobDraw').classList.remove('open');
 },{passive:true});
+
+
+/* ══ WALLET ══ */
+var W = { connected: false, address: null, provider: null };
+
+function openWallet(){
+  if(W.connected){ showConnected(); }
+  else{ showNotConnected(); }
+  document.getElementById('walletOverlay').classList.add('show');
+}
+function closeWallet(){document.getElementById('walletOverlay').classList.remove('show');}
+function closeWalletModal(e){if(e.target===document.getElementById('walletOverlay'))closeWallet();}
+
+function showNotConnected(){
+  document.getElementById('wNotConnected').style.display='';
+  document.getElementById('wConnected').style.display='none';
+}
+function showConnected(){
+  document.getElementById('wNotConnected').style.display='none';
+  document.getElementById('wConnected').style.display='';
+}
+
+function setConnected(address){
+  W.connected=true;W.address=address;
+  var short=address.slice(0,6)+'...'+address.slice(-4);
+  document.getElementById('walletBtn').classList.add('connected');
+  document.getElementById('walletBtnText').textContent=short;
+  document.getElementById('wAddress').textContent=address;
+  // Update bet slip disclaimer
+  document.querySelectorAll('.bs-disclaimer').forEach(function(el){
+    el.textContent='Demo mode · Wallet connected';
+  });
+  showConnected();
+  fetchBNBBalance(address);
+}
+
+async function fetchBNBBalance(address){
+  try{
+    var res=await fetch('https://api.bscscan.com/api?module=account&action=balance&address='+address+'&tag=latest&apikey=YourApiKeyToken');
+    var data=await res.json();
+    if(data.status==='1'){
+      var bnb=(parseFloat(data.result)/1e18).toFixed(4);
+      document.getElementById('wBalance').textContent=bnb;
+    }
+  }catch(e){}
+}
+
+async function connectMetaMask(){
+  if(typeof window.ethereum==='undefined'||!window.ethereum.isMetaMask){
+    window.open('https://metamask.io/download/','_blank');
+    return;
+  }
+  try{
+    var accounts=await window.ethereum.request({method:'eth_requestAccounts'});
+    if(accounts.length){
+      // Switch to BNB Chain
+      try{
+        await window.ethereum.request({
+          method:'wallet_switchEthereumChain',
+          params:[{chainId:'0x38'}]
+        });
+      }catch(switchErr){
+        if(switchErr.code===4902){
+          await window.ethereum.request({
+            method:'wallet_addEthereumChain',
+            params:[{
+              chainId:'0x38',
+              chainName:'BNB Smart Chain',
+              nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18},
+              rpcUrls:['https://bsc-dataseed.binance.org/'],
+              blockExplorerUrls:['https://bscscan.com/']
+            }]
+          });
+        }
+      }
+      setConnected(accounts[0]);
+      W.provider='metamask';
+    }
+  }catch(e){
+    if(e.code===4001) showError('Connection rejected.');
+    else showError('MetaMask error: '+e.message);
+  }
+}
+
+function connectWalletConnect(){
+  // WalletConnect v2 requires project ID — show QR modal placeholder
+  showWCModal();
+}
+
+function showWCModal(){
+  var notConn=document.getElementById('wNotConnected');
+  notConn.innerHTML='<div class="w-modal-head"><span class="w-modal-title">WalletConnect</span><button class="w-modal-close" onclick="showNotConnected()">←</button></div>'+
+    '<div style="padding:24px;text-align:center;">'+
+      '<div style="width:180px;height:180px;margin:0 auto 16px;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;">'+
+        '<svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M6.1 8.6C9.35 5.47 14.65 5.47 17.9 8.6L18.3 8.98C18.47 9.14 18.47 9.4 18.3 9.56L16.9 10.9C16.82 10.98 16.68 10.98 16.6 10.9L16.05 10.37C13.8 8.2 10.2 8.2 7.95 10.37L7.36 10.94C7.28 11.02 7.14 11.02 7.06 10.94L5.66 9.6C5.49 9.44 5.49 9.18 5.66 9.02L6.1 8.6Z" fill="#3B99FC"/></svg>'+
+        '<div style="font-size:10px;color:var(--t3)">WalletConnect v2</div>'+
+        '<div style="font-size:9px;color:var(--t3)">Coming with contract launch</div>'+
+      '</div>'+
+      '<p style="font-size:12px;color:var(--t2);line-height:1.6">WalletConnect integration will be live when the $STRAT contract launches on BNB Chain.</p>'+
+      '<p style="font-size:11px;color:var(--t3);margin-top:8px">Supports Trust Wallet, Rainbow, and 300+ wallets</p>'+
+    '</div>';
+}
+
+async function connectCoinbase(){
+  if(typeof window.ethereum!=='undefined'&&window.ethereum.isCoinbaseWallet){
+    try{
+      var accounts=await window.ethereum.request({method:'eth_requestAccounts'});
+      if(accounts.length){setConnected(accounts[0]);W.provider='coinbase';}
+    }catch(e){showError('Connection rejected.');}
+  }else{
+    window.open('https://www.coinbase.com/wallet/downloads','_blank');
+  }
+}
+
+async function connectOKX(){
+  if(typeof window.okxwallet!=='undefined'){
+    try{
+      var accounts=await window.okxwallet.request({method:'eth_requestAccounts'});
+      if(accounts.length){setConnected(accounts[0]);W.provider='okx';}
+    }catch(e){showError('Connection rejected.');}
+  }else{
+    window.open('https://www.okx.com/web3','_blank');
+  }
+}
+
+function disconnectWallet(){
+  W.connected=false;W.address=null;W.provider=null;
+  document.getElementById('walletBtn').classList.remove('connected');
+  document.getElementById('walletBtnText').textContent='Connect Wallet';
+  document.getElementById('wBalance').textContent='0.00';
+  document.getElementById('wStratBalance').textContent='0';
+  document.querySelectorAll('.bs-disclaimer').forEach(function(el){
+    el.textContent='Demo only · Wallet required at launch';
+  });
+  closeWallet();
+}
+
+function showError(msg){
+  var body=document.getElementById('wNotConnected');
+  var err=document.createElement('div');
+  err.style.cssText='margin:0 16px 12px;padding:9px 12px;border-radius:7px;background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);font-size:11px;color:var(--r);';
+  err.textContent=msg;
+  body.appendChild(err);
+  setTimeout(function(){err.remove();},3000);
+}
+
+// Auto-reconnect if previously connected via MetaMask
+if(typeof window.ethereum!=='undefined'){
+  window.ethereum.request({method:'eth_accounts'}).then(function(accounts){
+    if(accounts.length) setConnected(accounts[0]);
+  }).catch(function(){});
+  window.ethereum.on('accountsChanged',function(accounts){
+    if(accounts.length) setConnected(accounts[0]);
+    else disconnectWallet();
+  });
+}
 
 /* ══ INIT ══ */
 loadMatches();
