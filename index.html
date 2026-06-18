@@ -435,6 +435,27 @@ input{font-family:inherit;}
 }
 
 
+
+/* ════════════════════════
+   FEATURED MATCHES
+════════════════════════ */
+.match-row.featured{border-color:rgba(245,158,11,.2);}
+.match-row.featured:hover{border-color:rgba(245,158,11,.35);}
+.match-row.featured.expanded{border-color:rgba(245,158,11,.4);}
+.featured-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:1px 7px;border-radius:999px;font-size:8px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);
+  color:var(--o);flex-shrink:0;margin-left:auto;
+}
+.top-match-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:1px 7px;border-radius:999px;font-size:8px;font-weight:800;
+  letter-spacing:.06em;background:rgba(0,200,255,.08);
+  border:1px solid rgba(0,200,255,.25);color:var(--c);flex-shrink:0;
+}
+
 /* ════════════════════════
    LIVE SCORES
 ════════════════════════ */
@@ -929,7 +950,7 @@ async function loadMatches(){
     var m=d.matches||[];
     m.forEach(function(x){S.matches[x.id]=x;});
     S_ALL=m;
-    document.getElementById('matchCount').textContent=m.length+' matches';
+    document.getElementById('matchCount').textContent=m.length+' matches · sorted by importance';
     buildLeagueFilter(m);
     renderMatches(m);
     settleBets();
@@ -1056,7 +1077,13 @@ function renderMatches(matches){
     document.getElementById('matchesList').innerHTML='<div style="padding:28px;text-align:center;color:var(--t3);font-size:12px;">No upcoming matches. Check back soon.</div>';
     return;
   }
-  document.getElementById('matchesList').innerHTML=matches.map(function(m){
+  // Sort by leaguePriority desc, then kickoff asc (frontend backup sort)
+  var sorted = matches.slice().sort(function(a,b){
+    var pa = a.leaguePriority||40, pb = b.leaguePriority||40;
+    if(pb!==pa) return pb-pa;
+    return new Date(a.kickoff)-new Date(b.kickoff);
+  });
+  document.getElementById('matchesList').innerHTML=sorted.map(function(m){
     var o=calcOdds(m);
     var ko=new Date(m.kickoff);
     var day=ko.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
@@ -1064,11 +1091,15 @@ function renderMatches(matches){
     var lg=lc(m.league);
     var hE=m.home.replace(/'/g,'').replace(/"/g,'');
     var aE=m.away.replace(/'/g,'').replace(/"/g,'');
+    var isFeatured = (m.leaguePriority||40) >= 90;
+    var isTopLeague = (m.leaguePriority||40) >= 75 && !isFeatured;
     return(
-      '<div class="match-row" id="mr-'+m.id+'">'+
+      '<div class="match-row'+(isFeatured?' featured':'')+'" id="mr-'+m.id+'">'+
         '<div class="league-strip">'+
           '<span class="league-strip-dot" style="background:'+lg.d+'"></span>'+
           '<span class="league-strip-name" style="color:'+lg.c+'">'+m.league+'</span>'+
+          (isFeatured ? '<span class="featured-badge">Featured</span>' :
+           isTopLeague ? '<span class="top-match-badge">Top League</span>' : '')+
         '</div>'+
         '<div class="match-main" onclick="toggleMatch('+m.id+')">'+
           '<div class="match-time-col" id="tc-'+m.id+'">'+
