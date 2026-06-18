@@ -1136,6 +1136,18 @@ async function loadMatches(){
     buildLeagueFilter(m);
     renderMatches(m);
     settleBets();
+    // Show live/FT scores immediately from fixtures data
+    var liveStats=['1H','2H','HT','ET','BT','LIVE','FT','AET','PEN'];
+    m.forEach(function(x){
+      if(x.status && liveStats.indexOf(x.status)>=0){
+        var d2={status:x.status,homeGoals:x.homeGoals,awayGoals:x.awayGoals,minute:x.elapsed,finished:['FT','AET','PEN'].indexOf(x.status)>=0};
+        LIVE_DATA[x.id]=d2;
+        updateMatchLiveUI(x,d2);
+      }
+    });
+    var hasLive=m.some(function(x){return x.status&&['1H','2H','HT','ET','BT','LIVE'].indexOf(x.status)>=0;});
+    var lb=document.getElementById('liveSecBar');
+    if(lb)lb.style.display=hasLive?'flex':'none';
     return m;
   }catch(e){
     document.getElementById('matchesList').innerHTML='<div style="padding:16px;color:var(--r);font-size:12px;border-radius:7px;border:1px solid rgba(244,63,94,.18);background:rgba(244,63,94,.04)">Unable to load matches. Check connection and refresh.</div>';
