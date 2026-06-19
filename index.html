@@ -635,9 +635,11 @@ async function fetchLiveScores(){
   var toCheck=S_ALL.filter(function(m){
     var ko=new Date(m.kickoff);
     var diff=(now-ko)/60000;
-    return diff>-5&&diff<130;
+    return diff>0&&diff<100; // only matches that started, max 100 min ago
   });
   if(!toCheck.length)return;
+  // Max 3 matches per poll to save API calls
+  toCheck=toCheck.slice(0,3);
   for(var i=0;i<toCheck.length;i++){
     var m=toCheck[i];
     try{
@@ -684,7 +686,7 @@ function updateMatchLiveUI(m,d){
 
 function startLivePolling(){
   fetchLiveScores();
-  LIVE_INTERVAL=setInterval(fetchLiveScores,45000);
+  LIVE_INTERVAL=setInterval(fetchLiveScores,600000); // 10 min to save API calls
 }
 
 function renderMatches(matches){
