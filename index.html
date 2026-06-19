@@ -421,6 +421,17 @@ input{font-family:inherit;}
   <a href="https://stratosai.net" target="_blank" class="mob-lnk" style="color:var(--c)">STRATOS Platform</a>
 </div>
 
+<!-- LIVE TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-label">
+    <span class="ticker-label-dot"></span>
+    Live Bets
+  </div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="tickerInner"></div>
+  </div>
+</div>
+
 <div class="page">
   <div class="col-left">
     <!-- Search -->
@@ -678,7 +689,8 @@ function startLivePolling(){
 function renderMatches(matches){
   if(!matches.length){document.getElementById('matchesList').innerHTML='<div style="padding:28px;text-align:center;color:var(--t3);font-size:12px;">No upcoming matches. Check back soon.</div>';return;}
   document.getElementById('matchesList').innerHTML=matches.map(function(m){
-    var o=calcOdds(m);
+    var liveD = LIVE_DATA[m.id];
+    var o = (liveD && liveD.status) ? calcLiveOdds(m, liveD) : calcOdds(m);
     var ko=new Date(m.kickoff);
     var day=ko.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
     var hr=ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
