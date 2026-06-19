@@ -389,6 +389,8 @@ input{font-family:inherit;}
 .tick-separator{color:var(--t3);margin:0 2px;}
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@web3modal/standalone@2.4.1/dist/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/sign-client@2.11.0/dist/index.umd.js"></script>
 </head>
 <body>
 
@@ -532,9 +534,9 @@ input{font-family:inherit;}
           <div><div class="w-option-name">MetaMask</div><div class="w-option-desc">Browser extension wallet</div></div>
           <svg class="w-option-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
         </div>
-        <div class="w-option" onclick="connectWalletConnect()">
+        <div class="w-option" onclick="connectWalletConnect()" style="border-color:rgba(57,255,122,.2);background:rgba(57,255,122,.03);">
           <div class="w-option-icon" style="background:#3b99fc22;border:1px solid #3b99fc33;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6.1 8.6C9.35 5.47 14.65 5.47 17.9 8.6L18.3 8.98C18.47 9.14 18.47 9.4 18.3 9.56L16.9 10.9C16.82 10.98 16.68 10.98 16.6 10.9L16.05 10.37C13.8 8.2 10.2 8.2 7.95 10.37L7.36 10.94C7.28 11.02 7.14 11.02 7.06 10.94L5.66 9.6C5.49 9.44 5.49 9.18 5.66 9.02L6.1 8.6ZM20.65 11.23L21.9 12.43C22.07 12.59 22.07 12.85 21.9 13.01L16.18 18.55C16.01 18.71 15.73 18.71 15.56 18.55L11.5 14.62C11.46 14.58 11.39 14.58 11.35 14.62L7.3 18.55C7.13 18.71 6.85 18.71 6.68 18.55L0.95 13.01C0.78 12.85 0.78 12.59 0.95 12.43L2.2 11.23C2.37 11.07 2.65 11.07 2.82 11.23L6.87 15.16C6.91 15.2 6.98 15.2 7.02 15.16L11.07 11.23C11.24 11.07 11.52 11.07 11.69 11.23L15.74 15.16C15.78 15.2 15.85 15.2 15.89 15.16L19.94 11.23C20.11 11.07 20.48 11.07 20.65 11.23Z" fill="#3B99FC"/></svg></div>
-          <div><div class="w-option-name">WalletConnect</div><div class="w-option-desc">Trust Wallet, Rainbow & 300+ wallets</div></div>
+          <div><div class="w-option-name">WalletConnect</div><div class="w-option-desc">Trust Wallet, MetaMask Mobile & 300+ wallets</div></div>
           <svg class="w-option-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
         </div>
       </div>
@@ -916,7 +918,64 @@ async function connectMetaMask(){
     }
   }catch(e){if(e.code!==4001)console.log(e);}
 }
-function connectWalletConnect(){var n=document.getElementById('wNotConnected');n.innerHTML='<div class="w-modal-head"><span class="w-modal-title">WalletConnect</span><button class="w-modal-close" onclick="closeWallet()">✕</button></div><div style="padding:24px;text-align:center;"><p style="font-size:12px;color:var(--t2);line-height:1.6">WalletConnect integration will be live when the $STRAT contract launches on BNB Chain.</p><p style="font-size:11px;color:var(--t3);margin-top:8px">Supports Trust Wallet, Rainbow, and 300+ wallets</p></div>';}
+async function connectWalletConnect(){
+  try{
+    // Show QR modal using Web3Modal standalone
+    var modal = window.Web3Modal ? new window.Web3Modal.Web3Modal({
+      projectId: '2179dfdce19850a9e8dfee5bcb792046',
+      standaloneChains: ['eip155:56'], // BNB Chain
+    }) : null;
+
+    if(modal){
+      modal.openModal();
+      modal.subscribeModal(function(state){
+        if(!state.open){
+          // User closed modal
+          return;
+        }
+      });
+    } else {
+      // Fallback — show deep link options for mobile
+      showWCDeepLinks();
+    }
+  } catch(e){
+    showWCDeepLinks();
+  }
+}
+
+function showWCDeepLinks(){
+  var n = document.getElementById('wNotConnected');
+  var siteUrl = encodeURIComponent('https://stratosai.bet');
+  n.innerHTML = '<div class="w-modal-head"><span class="w-modal-title">Connect Mobile Wallet</span><button class="w-modal-close" onclick="showNotConnected()">←</button></div>'+
+    '<div style="padding:16px;">'+
+      '<p style="font-size:11px;color:var(--t2);margin-bottom:14px;line-height:1.6">Open STRATOS AI directly in your wallet app:</p>'+
+      // Trust Wallet
+      '<a href="https://link.trustwallet.com/open_url?coin_id=20000714&url=https://stratosai.bet" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:10px;margin-bottom:8px;border:1px solid var(--line2);background:var(--bg2);color:var(--t1);text-decoration:none;">'+
+        '<div style="width:32px;height:32px;border-radius:8px;background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00c8ff" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>'+
+        '<div><div style="font-size:13px;font-weight:700;">Trust Wallet</div><div style="font-size:11px;color:var(--t3);">Most popular on mobile</div></div>'+
+        '<svg style="margin-left:auto;color:var(--t3)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>'+
+      '</a>'+
+      // MetaMask Mobile
+      '<a href="https://metamask.app.link/dapp/stratosai.bet" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:10px;margin-bottom:8px;border:1px solid var(--line2);background:var(--bg2);color:var(--t1);text-decoration:none;">'+
+        '<div style="width:32px;height:32px;border-radius:8px;background:#f6851b22;border:1px solid #f6851b33;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 3L13.5 8.5L15 5.5L21 3Z" fill="#E2761B"/><path d="M3 3L10.4 8.55L9.05 5.5L3 3Z" fill="#E4761B"/></svg></div>'+
+        '<div><div style="font-size:13px;font-weight:700;">MetaMask</div><div style="font-size:11px;color:var(--t3);">Open in MetaMask browser</div></div>'+
+        '<svg style="margin-left:auto;color:var(--t3)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>'+
+      '</a>'+
+      // OKX
+      '<a href="okx://wallet/dapp/url?dappUrl=https://stratosai.bet" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:10px;margin-bottom:8px;border:1px solid var(--line2);background:var(--bg2);color:var(--t1);text-decoration:none;">'+
+        '<div style="width:32px;height:32px;border-radius:8px;background:#ffffff0f;border:1px solid #ffffff18;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="9" height="9" rx="2" fill="white"/><rect x="13" y="2" width="9" height="9" rx="2" fill="white"/><rect x="2" y="13" width="9" height="9" rx="2" fill="white"/><rect x="13" y="13" width="9" height="9" rx="2" fill="white"/></svg></div>'+
+        '<div><div style="font-size:13px;font-weight:700;">OKX Wallet</div><div style="font-size:11px;color:var(--t3);">Popular on BNB Chain</div></div>'+
+        '<svg style="margin-left:auto;color:var(--t3)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>'+
+      '</a>'+
+      '<p style="font-size:10px;color:var(--t3);text-align:center;margin-top:10px;line-height:1.6">Or open stratosai.bet inside your wallet browser</p>'+
+    '</div>';
+}
+
+function showNotConnected(){
+  document.getElementById('wNotConnected').innerHTML = document.getElementById('wNotConnected').dataset.original || '';
+  // Re-render wallet options
+  openWallet();
+}
 function disconnectWallet(){W.connected=false;W.address=null;document.getElementById('walletBtn').classList.remove('connected');document.getElementById('walletBtnText').textContent='Connect Wallet';closeWallet();}
 if(typeof window.ethereum!=='undefined'){window.ethereum.request({method:'eth_accounts'}).then(function(accounts){if(accounts.length)setConnected(accounts[0]);}).catch(function(){});window.ethereum.on('accountsChanged',function(accounts){if(accounts.length)setConnected(accounts[0]);else disconnectWallet();});}
 
