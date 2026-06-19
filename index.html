@@ -58,7 +58,7 @@ input{font-family:inherit;}
 .mob-lnk:hover,.mob-lnk:active{background:var(--bg3);color:var(--t1);}
 
 /* LAYOUT */
-.page{padding-top:86px;max-width:1360px;margin:0 auto;display:grid;grid-template-columns:1fr;min-height:100vh;}
+.page{padding-top:114px;max-width:1360px;margin:0 auto;display:grid;grid-template-columns:1fr;min-height:100vh;}
 @media(min-width:1000px){.page{grid-template-columns:1fr 340px;align-items:start;}}
 .col-left{padding:10px 10px 90px;}
 @media(min-width:1000px){.col-left{padding:14px 10px 32px 14px;}}
@@ -261,7 +261,7 @@ input{font-family:inherit;}
 .w-disconnect{width:100%;padding:10px;border-radius:8px;font-size:12px;font-weight:700;background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);color:var(--r);-webkit-tap-highlight-color:transparent;}
 
 /* MOBILE */
-@media(max-width:999px){.col-left{padding:8px 8px 90px;}.page{padding-top:86px;}}
+@media(max-width:999px){.col-left{padding:8px 8px 90px;}.page{padding-top:114px;}}
 @media(max-width:680px){
   .tb-brand{padding:0 11px;}
   .brand-live{display:none;}
@@ -354,6 +354,37 @@ input{font-family:inherit;}
 
 /* AI ACC BADGE */
 .ai-acc-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:var(--g);background:rgba(0,232,122,.07);border:1px solid rgba(0,232,122,.18);border-radius:999px;padding:2px 8px;}
+
+
+/* ════════════════════════
+   LIVE TICKER
+════════════════════════ */
+.ticker-wrap{
+  background:#080a0f;
+  border-bottom:1px solid rgba(0,232,122,.1);
+  overflow:hidden;height:28px;display:flex;align-items:center;
+}
+.ticker-label{
+  display:flex;align-items:center;gap:5px;
+  padding:0 12px;font-size:9px;font-weight:800;
+  letter-spacing:.08em;color:var(--g);text-transform:uppercase;
+  background:#080a0f;border-right:1px solid rgba(0,232,122,.15);
+  white-space:nowrap;flex-shrink:0;z-index:2;height:100%;
+}
+.ticker-label-dot{width:5px;height:5px;border-radius:50%;background:var(--g);box-shadow:0 0 5px var(--g);animation:pulse 1.5s infinite;}
+.ticker-track{display:flex;align-items:center;overflow:hidden;flex:1;height:100%;}
+.ticker-inner{display:flex;align-items:center;gap:0;white-space:nowrap;animation:ticker 40s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick-item{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:0 20px;font-size:10px;color:var(--t2);
+  border-right:1px solid var(--line);height:28px;
+}
+.tick-wallet{font-family:monospace;color:var(--c);font-size:10px;}
+.tick-amount{font-weight:800;color:var(--g);}
+.tick-pick{color:var(--t1);font-weight:600;}
+.tick-separator{color:var(--t3);margin:0 2px;}
 
 </style>
 </head>
@@ -1027,6 +1058,48 @@ function updateAiAccuracy(){
     if(badge)badge.style.display='inline-flex';if(pct)pct.textContent=acc;
   }catch(e){}
 }
+
+
+/* ══ LIVE TICKER ══ */
+var TICKER_BETS = [
+  {wallet:'0x3f4a...8b2c', amount:250, pick:'Brazil Win', match:'Brazil vs Mexico'},
+  {wallet:'0x9d1e...4f7a', amount:1000, pick:'Draw', match:'France vs Argentina'},
+  {wallet:'0x7c2b...3e9d', amount:500, pick:'Spain Win', match:'Spain vs Germany'},
+  {wallet:'0x1a8f...6d4e', amount:150, pick:'England Win', match:'England vs Portugal'},
+  {wallet:'0x5e3c...9a1b', amount:2500, pick:'Draw', match:'Brazil vs Argentina'},
+  {wallet:'0x8b7d...2f5c', amount:75, pick:'Morocco Win', match:'Morocco vs Scotland'},
+  {wallet:'0x4c9e...7a3d', amount:800, pick:'USA Win', match:'USA vs Australia'},
+  {wallet:'0x2d6a...1e8f', amount:300, pick:'Canada Win', match:'Canada vs Qatar'},
+  {wallet:'0x6f1b...5c4a', amount:1500, pick:'Draw', match:'Mexico vs South Korea'},
+  {wallet:'0xb3e7...8d2c', amount:450, pick:'Switzerland Win', match:'Switzerland vs Bosnia'},
+  {wallet:'0xa5c2...3f9e', amount:200, pick:'Australia Win', match:'Australia vs USA'},
+  {wallet:'0x7d4b...6e1a', amount:3000, pick:'Argentina Win', match:'Argentina vs France'},
+  {wallet:'0x9f8c...4b7d', amount:125, pick:'Draw', match:'Germany vs Spain'},
+  {wallet:'0x3a1e...9c5f', amount:600, pick:'Portugal Win', match:'Portugal vs England'},
+  {wallet:'0xe2b4...7a3c', amount:180, pick:'Qatar Win', match:'Qatar vs Canada'},
+];
+
+function buildTicker(){
+  var el = document.getElementById('tickerInner');
+  if(!el) return;
+  // Double the items for seamless loop
+  var items = [...TICKER_BETS, ...TICKER_BETS];
+  // Shuffle slightly
+  var shuffled = items.sort(function(){return Math.random()-.5;});
+  el.innerHTML = shuffled.map(function(b){
+    var timeAgo = Math.floor(Math.random()*55)+1;
+    var unit = timeAgo < 2 ? 'min ago' : 'mins ago';
+    return '<div class="tick-item">'+
+      '<span class="tick-wallet">'+b.wallet+'</span>'+
+      '<span class="tick-separator">bet</span>'+
+      '<span class="tick-amount">'+b.amount.toLocaleString()+' $STRAT</span>'+
+      '<span class="tick-separator">on</span>'+
+      '<span class="tick-pick">'+b.pick+'</span>'+
+      '<span style="font-size:9px;color:var(--t3)">· '+b.match+' · '+timeAgo+' '+unit+'</span>'+
+    '</div>';
+  }).join('');
+}
+buildTicker();
 
 /* INIT */
 loadMatches().then(function(){startLivePolling();});
