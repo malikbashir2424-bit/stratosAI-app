@@ -377,6 +377,7 @@ input{font-family:inherit;}
 .ticker-inner{display:flex;align-items:center;gap:0;white-space:nowrap;animation:ticker 40s linear infinite;}
 .ticker-inner:hover{animation-play-state:paused;}
 @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-inner{animation-duration:300s!important;}
 .tick-item{
   display:inline-flex;align-items:center;gap:6px;
   padding:0 20px;font-size:10px;color:var(--t2);
@@ -1077,42 +1078,128 @@ function updateAiAccuracy(){
 
 /* ══ LIVE TICKER ══ */
 var TICKER_BETS = [
-  {wallet:'0x3f4a...8b2c', amount:250, pick:'Brazil Win', match:'Brazil vs Mexico'},
-  {wallet:'0x9d1e...4f7a', amount:1000, pick:'Draw', match:'France vs Argentina'},
-  {wallet:'0x7c2b...3e9d', amount:500, pick:'Spain Win', match:'Spain vs Germany'},
-  {wallet:'0x1a8f...6d4e', amount:150, pick:'England Win', match:'England vs Portugal'},
-  {wallet:'0x5e3c...9a1b', amount:2500, pick:'Draw', match:'Brazil vs Argentina'},
-  {wallet:'0x8b7d...2f5c', amount:75, pick:'Morocco Win', match:'Morocco vs Scotland'},
-  {wallet:'0x4c9e...7a3d', amount:800, pick:'USA Win', match:'USA vs Australia'},
-  {wallet:'0x2d6a...1e8f', amount:300, pick:'Canada Win', match:'Canada vs Qatar'},
-  {wallet:'0x6f1b...5c4a', amount:1500, pick:'Draw', match:'Mexico vs South Korea'},
-  {wallet:'0xb3e7...8d2c', amount:450, pick:'Switzerland Win', match:'Switzerland vs Bosnia'},
-  {wallet:'0xa5c2...3f9e', amount:200, pick:'Australia Win', match:'Australia vs USA'},
-  {wallet:'0x7d4b...6e1a', amount:3000, pick:'Argentina Win', match:'Argentina vs France'},
-  {wallet:'0x9f8c...4b7d', amount:125, pick:'Draw', match:'Germany vs Spain'},
-  {wallet:'0x3a1e...9c5f', amount:600, pick:'Portugal Win', match:'Portugal vs England'},
-  {wallet:'0xe2b4...7a3c', amount:180, pick:'Qatar Win', match:'Qatar vs Canada'},
+  {wallet:'0x402c...16f1', amount:500, pick:'Draw', match:'Ecuador vs Japan', mins:33},
+  {wallet:'0xe627...8175', amount:100, pick:'Draw', match:'Qatar vs Chile', mins:16},
+  {wallet:'0xc3aa...68b0', amount:1200, pick:'Canada Win', match:'Canada vs Morocco', mins:49},
+  {wallet:'0x1116...2f98', amount:125, pick:'Uruguay Win', match:'Belgium vs Uruguay', mins:20},
+  {wallet:'0xd355...fa97', amount:750, pick:'Colombia Win', match:'Colombia vs Mexico', mins:7},
+  {wallet:'0xe44f...3f46', amount:1000, pick:'Ecuador Win', match:'Spain vs Ecuador', mins:17},
+  {wallet:'0x9337...6fa6', amount:2500, pick:'USA Win', match:'USA vs Switzerland', mins:24},
+  {wallet:'0x2c55...6be0', amount:300, pick:'Spain Win', match:'Spain vs Ecuador', mins:42},
+  {wallet:'0x812c...3208', amount:1000, pick:'England Win', match:'England vs Mexico', mins:25},
+  {wallet:'0xfb2a...822d', amount:2000, pick:'Sweden Win', match:'Uruguay vs Sweden', mins:11},
+  {wallet:'0x5ced...d92d', amount:100, pick:'USA Win', match:'USA vs Switzerland', mins:14},
+  {wallet:'0xd608...9363', amount:750, pick:'Draw', match:'Senegal vs Argentina', mins:18},
+  {wallet:'0xada7...2694', amount:750, pick:'Draw', match:'Qatar vs Portugal', mins:11},
+  {wallet:'0x01fd...6376', amount:125, pick:'Draw', match:'France vs Argentina', mins:17},
+  {wallet:'0xc3b8...5c11', amount:500, pick:'Ghana Win', match:'Ghana vs Senegal', mins:58},
+  {wallet:'0x9bd0...a62b', amount:2000, pick:'Uruguay Win', match:'England vs Uruguay', mins:28},
+  {wallet:'0x870b...c2ce', amount:100, pick:'Draw', match:'Mexico vs Brazil', mins:39},
+  {wallet:'0x15eb...f94b', amount:600, pick:'Draw', match:'Spain vs Netherlands', mins:44},
+  {wallet:'0xd0a9...ec1d', amount:2000, pick:'Colombia Win', match:'Colombia vs Senegal', mins:12},
+  {wallet:'0x4bc0...fa33', amount:300, pick:'Draw', match:'Nigeria vs Japan', mins:30},
+  {wallet:'0xd6a3...c25c', amount:1500, pick:'Sweden Win', match:'Chile vs Sweden', mins:45},
+  {wallet:'0x2776...7846', amount:300, pick:'Draw', match:'France vs Nigeria', mins:39},
+  {wallet:'0x1479...3d6f', amount:150, pick:'Draw', match:'Brazil vs Sweden', mins:25},
+  {wallet:'0x56c8...f999', amount:3000, pick:'Japan Win', match:'Japan vs Morocco', mins:10},
+  {wallet:'0x3b3d...0601', amount:800, pick:'Italy Win', match:'Italy vs Brazil', mins:25},
+  {wallet:'0x4d45...6459', amount:2000, pick:'Draw', match:'Croatia vs Germany', mins:39},
+  {wallet:'0xa2ba...dce9', amount:2500, pick:'Draw', match:'Argentina vs England', mins:41},
+  {wallet:'0xf00e...1579', amount:750, pick:'Netherlands Win', match:'Germany vs Netherlands', mins:6},
+  {wallet:'0x59c9...04de', amount:1200, pick:'England Win', match:'South Korea vs England', mins:28},
+  {wallet:'0x7b00...e208', amount:50, pick:'Draw', match:'France vs Ecuador', mins:6},
+  {wallet:'0xe790...dd70', amount:5000, pick:'Draw', match:'France vs Croatia', mins:17},
+  {wallet:'0xefc5...da79', amount:150, pick:'Germany Win', match:'Germany vs Argentina', mins:47},
+  {wallet:'0x11c0...d649', amount:3000, pick:'South Korea Win', match:'South Korea vs Netherlands', mins:57},
+  {wallet:'0xc05d...248b', amount:600, pick:'Draw', match:'Sweden vs Switzerland', mins:23},
+  {wallet:'0xfb97...061c', amount:150, pick:'Portugal Win', match:'Sweden vs Portugal', mins:48},
+  {wallet:'0xbdc9...728d', amount:600, pick:'Japan Win', match:'Japan vs Ecuador', mins:55},
+  {wallet:'0x6e87...823b', amount:1000, pick:'England Win', match:'Colombia vs England', mins:21},
+  {wallet:'0xf5f3...90f9', amount:1200, pick:'Ecuador Win', match:'Ecuador vs Argentina', mins:52},
+  {wallet:'0xecb7...219a', amount:2000, pick:'Draw', match:'Argentina vs Denmark', mins:34},
+  {wallet:'0x12fd...7176', amount:75, pick:'Denmark Win', match:'Denmark vs Australia', mins:24},
+  {wallet:'0xa46b...cdf2', amount:1500, pick:'Denmark Win', match:'Denmark vs Ecuador', mins:5},
+  {wallet:'0x732b...1c1d', amount:200, pick:'Draw', match:'Spain vs Portugal', mins:28},
+  {wallet:'0x7804...849d', amount:2500, pick:'Draw', match:'Sweden vs Brazil', mins:20},
+  {wallet:'0x6d78...6329', amount:150, pick:'Draw', match:'England vs Germany', mins:48},
+  {wallet:'0xf670...1bc6', amount:5000, pick:'Senegal Win', match:'France vs Senegal', mins:47},
+  {wallet:'0x243d...e6ce', amount:500, pick:'Spain Win', match:'Morocco vs Spain', mins:33},
+  {wallet:'0xe669...e612', amount:2500, pick:'Draw', match:'Belgium vs Turkey', mins:19},
+  {wallet:'0x05d1...3f56', amount:75, pick:'Spain Win', match:'Denmark vs Spain', mins:3},
+  {wallet:'0xfdcb...710f', amount:600, pick:'Draw', match:'Qatar vs Mexico', mins:2},
+  {wallet:'0x65f0...19fd', amount:100, pick:'Australia Win', match:'Chile vs Australia', mins:10},
+  {wallet:'0xf841...b471', amount:150, pick:'Chile Win', match:'Croatia vs Chile', mins:52},
+  {wallet:'0xab08...9019', amount:75, pick:'Canada Win', match:'Brazil vs Canada', mins:2},
+  {wallet:'0x9eb6...2e8e', amount:1200, pick:'Switzerland Win', match:'Australia vs Switzerland', mins:29},
+  {wallet:'0xab77...6bbf', amount:800, pick:'Draw', match:'Japan vs Portugal', mins:47},
+  {wallet:'0x2886...059a', amount:750, pick:'Ghana Win', match:'Croatia vs Ghana', mins:11},
+  {wallet:'0x10d0...5fda', amount:125, pick:'England Win', match:'England vs Belgium', mins:8},
+  {wallet:'0x0d8b...ee6e', amount:800, pick:'Chile Win', match:'Chile vs Argentina', mins:58},
+  {wallet:'0x6430...a76a', amount:125, pick:'Ecuador Win', match:'Ecuador vs Qatar', mins:23},
+  {wallet:'0x064f...3516', amount:2500, pick:'Belgium Win', match:'Germany vs Belgium', mins:19},
+  {wallet:'0x9fa7...b487', amount:1000, pick:'Turkey Win', match:'Turkey vs Morocco', mins:12},
+  {wallet:'0xa65d...43ec', amount:750, pick:'Draw', match:'France vs Turkey', mins:52},
+  {wallet:'0xcb10...e7d6', amount:150, pick:'Draw', match:'Japan vs Belgium', mins:54},
+  {wallet:'0xfebb...6e49', amount:250, pick:'Switzerland Win', match:'Switzerland vs Brazil', mins:6},
+  {wallet:'0x0f26...a5eb', amount:125, pick:'Denmark Win', match:'Brazil vs Denmark', mins:29},
+  {wallet:'0xaa19...f621', amount:2500, pick:'Brazil Win', match:'Chile vs Brazil', mins:10},
+  {wallet:'0xa007...52a0', amount:600, pick:'Draw', match:'France vs Switzerland', mins:11},
+  {wallet:'0xf33c...02c3', amount:5000, pick:'USA Win', match:'South Korea vs USA', mins:34},
+  {wallet:'0x0679...cb7d', amount:800, pick:'USA Win', match:'USA vs Sweden', mins:54},
+  {wallet:'0x1a5d...b0ce', amount:125, pick:'Draw', match:'Ecuador vs Ghana', mins:43},
+  {wallet:'0xfda1...1300', amount:2500, pick:'Senegal Win', match:'Senegal vs Spain', mins:22},
+  {wallet:'0xa8e5...6bda', amount:1500, pick:'Draw', match:'Italy vs Uruguay', mins:40},
+  {wallet:'0xe39a...8066', amount:250, pick:'Australia Win', match:'Qatar vs Australia', mins:23},
+  {wallet:'0x2ed6...816e', amount:300, pick:'South Korea Win', match:'South Korea vs Chile', mins:52},
+  {wallet:'0xfc89...4529', amount:500, pick:'Senegal Win', match:'Senegal vs USA', mins:26},
+  {wallet:'0x3ee7...a8a1', amount:125, pick:'Ecuador Win', match:'Ecuador vs Brazil', mins:33},
+  {wallet:'0xed89...2d9c', amount:150, pick:'Draw', match:'Senegal vs Croatia', mins:47},
+  {wallet:'0x29f5...971b', amount:300, pick:'Draw', match:'England vs Switzerland', mins:41},
+  {wallet:'0x709a...5e10', amount:150, pick:'Draw', match:'South Korea vs Ecuador', mins:34},
+  {wallet:'0xc730...dbce', amount:250, pick:'USA Win', match:'USA vs Denmark', mins:46},
+  {wallet:'0x8403...1d86', amount:2500, pick:'Draw', match:'Croatia vs Mexico', mins:48},
+  {wallet:'0x856c...a8b6', amount:5000, pick:'Draw', match:'Ecuador vs France', mins:8},
+  {wallet:'0xfc56...72da', amount:75, pick:'Senegal Win', match:'Senegal vs Netherlands', mins:32},
+  {wallet:'0x7d14...dac3', amount:75, pick:'Draw', match:'South Korea vs Italy', mins:55},
+  {wallet:'0x92b1...b334', amount:50, pick:'Belgium Win', match:'Belgium vs Qatar', mins:19},
+  {wallet:'0xfb5f...153c', amount:125, pick:'Australia Win', match:'Uruguay vs Australia', mins:46},
+  {wallet:'0x0586...40e7', amount:250, pick:'Canada Win', match:'Canada vs England', mins:5},
+  {wallet:'0x73f4...570a', amount:1000, pick:'Switzerland Win', match:'Croatia vs Switzerland', mins:36},
+  {wallet:'0x58aa...66d5', amount:200, pick:'Brazil Win', match:'Brazil vs Belgium', mins:11},
+  {wallet:'0x95c4...530a', amount:600, pick:'Draw', match:'USA vs Croatia', mins:37},
+  {wallet:'0x1510...558a', amount:300, pick:'Croatia Win', match:'Uruguay vs Croatia', mins:24},
+  {wallet:'0xa4a8...30a3', amount:600, pick:'Draw', match:'Belgium vs Uruguay', mins:15},
+  {wallet:'0x0010...8d40', amount:400, pick:'USA Win', match:'USA vs Portugal', mins:16},
+  {wallet:'0xefa4...ddf5', amount:400, pick:'Draw', match:'Colombia vs Netherlands', mins:33},
+  {wallet:'0xbef8...5d0d', amount:800, pick:'Draw', match:'Portugal vs Germany', mins:41},
+  {wallet:'0xad60...a938', amount:800, pick:'Switzerland Win', match:'South Korea vs Switzerland', mins:31},
+  {wallet:'0x8bf5...eca3', amount:75, pick:'Draw', match:'Morocco vs Belgium', mins:27},
+  {wallet:'0xe286...37f4', amount:200, pick:'Morocco Win', match:'Turkey vs Morocco', mins:25},
+  {wallet:'0x9df5...daba', amount:500, pick:'England Win', match:'England vs Nigeria', mins:58},
+  {wallet:'0xf1ae...07de', amount:800, pick:'Draw', match:'Brazil vs Ecuador', mins:52},
+  {wallet:'0x278f...ed0f', amount:125, pick:'Senegal Win', match:'Senegal vs USA', mins:28},
 ];
+
 
 function buildTicker(){
   var el = document.getElementById('tickerInner');
   if(!el) return;
-  // Double the items for seamless loop
-  var items = [...TICKER_BETS, ...TICKER_BETS];
-  // Shuffle slightly
-  var shuffled = items.sort(function(){return Math.random()-.5;});
-  el.innerHTML = shuffled.map(function(b){
-    var timeAgo = Math.floor(Math.random()*55)+1;
-    var unit = timeAgo < 2 ? 'min ago' : 'mins ago';
+  // Use all 100 bets, duplicate for seamless loop
+  var items = TICKER_BETS.concat(TICKER_BETS);
+  el.innerHTML = items.map(function(b){
+    var unit = b.mins < 2 ? 'min ago' : 'mins ago';
     return '<div class="tick-item">'+
       '<span class="tick-wallet">'+b.wallet+'</span>'+
       '<span class="tick-separator">bet</span>'+
       '<span class="tick-amount">'+b.amount.toLocaleString()+' $STRAT</span>'+
       '<span class="tick-separator">on</span>'+
       '<span class="tick-pick">'+b.pick+'</span>'+
-      '<span style="font-size:9px;color:var(--t3)">· '+b.match+' · '+timeAgo+' '+unit+'</span>'+
+      '<span style="font-size:9px;color:var(--t3)">· '+b.match+' · '+b.mins+' '+unit+'</span>'+
     '</div>';
   }).join('');
+  // Adjust animation speed based on number of items
+  var tickerEl = el.parentElement.parentElement;
+  if(tickerEl) tickerEl.style.setProperty('--ticker-duration', (items.length * 3)+'s');
 }
 buildTicker();
 
