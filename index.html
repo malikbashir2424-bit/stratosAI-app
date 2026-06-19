@@ -593,7 +593,8 @@ async function settleBets(){
       var d=await r.json();
       if(d.finished&&d.result){
         var idx=bets.findIndex(function(b){return b.betId===bet.betId;});
-        if(idx>=0){bets[idx].settled=true;bets[idx].result=d.result;bets[idx].won=(bet.pick===d.result);bets[idx].finalScore=d.homeGoals+'-'+d.awayGoals;upd=true;}
+        if(idx>=0){bets[idx].settled=true;bets[idx].result=d.result;bets[idx].won=(bet.pick===d.result);bets[idx].finalScore=d.homeGoals+'-'+d.awayGoals;upd=true;
+        if(bets[idx].won) sendPlatformEvent('winning_bet');}
       }
     }catch(e){}
   }
@@ -806,6 +807,7 @@ function updatePot(sId,pId){var stake=parseFloat(document.getElementById(sId).va
 
 function placeBet(sId){
   if(!S.betSlip.length)return;
+  sendPlatformEvent('place_bet');
   var el=document.getElementById(sId);var stake=parseFloat(el?el.value:100)||100;
   var tot=S.betSlip.reduce(function(a,b){return a*b.odds;},1);var pot=(stake*tot).toFixed(2);
   var picks=S.betSlip.map(function(b){return b.label+' @ '+b.odds.toFixed(2);}).join(' + ');
@@ -1261,6 +1263,40 @@ function buildTicker(){
   if(tickerEl) tickerEl.style.setProperty('--ticker-duration', (items.length * 3)+'s');
 }
 buildTicker();
+
+
+
+/* ══ TELEGRAM ID FROM URL ══ */
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var tgid = params.get('tgid');
+  if(tgid && !isNaN(tgid)){
+    localStorage.setItem('stratos_telegram_id', tgid);
+  }
+})();
+
+/* ══ WEBHOOK — Platform Events ══ */
+var WEBHOOK_URL = 'https://stratosai-bot-production.up.railway.app/webhook';
+
+function sendPlatformEvent(eventType){
+  // Get telegramId from localStorage (set when user connects via Telegram)
+  var telegramId = localStorage.getItem('stratos_telegram_id');
+  if(!telegramId) return; // Only send if user came from Telegram bot
+  fetch(WEBHOOK_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ telegramId: parseInt(telegramId), eventType: eventType })
+  }).catch(function(){});
+}
+
+// Fire visit_sportsbook on page load
+(function(){
+  var visited = sessionStorage.getItem('stratos_visit_fired');
+  if(!visited){
+    sessionStorage.setItem('stratos_visit_fired', '1');
+    sendPlatformEvent('visit_sportsbook');
+  }
+})();
 
 /* INIT */
 loadMatches().then(function(){startLivePolling();});
