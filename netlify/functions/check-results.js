@@ -5,6 +5,7 @@ exports.handler = async function(event) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Content-Type": "application/json",
+    "Cache-Control": "public, max-age=300",
   };
   if (!API_KEY) {
     return { statusCode: 500, headers, body: JSON.stringify({ error: "Missing API key." }) };
@@ -35,7 +36,7 @@ exports.handler = async function(event) {
     }
     return {
       statusCode: 200,
-      headers,
+      headers: {...headers, "Cache-Control": "public, max-age=300"},
       body: JSON.stringify({
         fixtureId: parseInt(fixtureId),
         status,
