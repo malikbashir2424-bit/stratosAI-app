@@ -24,7 +24,6 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes barGrow{from{width:0}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-@keyframes ringAnim{from{stroke-dashoffset:283}to{stroke-dashoffset:var(--target)}}
 
 /* TOPBAR */
 .topbar{position:fixed;top:0;left:0;right:0;z-index:100;}
@@ -72,7 +71,12 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
 .conf-label{font-size:11px;font-weight:600;width:52px;flex-shrink:0;}
 .conf-track{flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
 .conf-fill{height:100%;border-radius:3px;animation:barGrow .8s cubic-bezier(.16,1,.3,1);}
-.conf-stat{font-size:10px;color:var(--t2);width:48px;text-align:right;flex-shrink:0;}
+.conf-stat{font-size:10px;color:var(--t2);width:56px;text-align:right;flex-shrink:0;}
+
+/* SOURCE BADGE */
+.source-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:9px;font-weight:700;margin-bottom:12px;}
+.source-supabase{background:rgba(0,200,255,.07);border:1px solid rgba(0,200,255,.2);color:var(--c);}
+.source-local{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);color:var(--o);}
 
 /* FILTERS */
 .filter-bar{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;padding-bottom:2px;}
@@ -86,7 +90,6 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
 .pred-card.correct{border-color:rgba(0,232,122,.2);}
 .pred-card.wrong{border-color:rgba(244,63,94,.15);}
 .pred-card.pending{border-color:rgba(245,158,11,.15);}
-
 .pred-head{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--line);}
 .pred-league{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);}
 .pred-time{font-size:9px;color:var(--t3);margin-left:auto;}
@@ -94,14 +97,14 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
 .ps-correct{background:rgba(0,232,122,.1);color:var(--g);border:1px solid rgba(0,232,122,.25);}
 .ps-wrong{background:rgba(244,63,94,.08);color:var(--r);border:1px solid rgba(244,63,94,.2);}
 .ps-pending{background:rgba(245,158,11,.07);color:var(--o);border:1px solid rgba(245,158,11,.2);}
-
 .pred-body{padding:11px 13px;}
 .pred-match{font-size:14px;font-weight:700;color:var(--t1);margin-bottom:4px;}
-.pred-score{font-size:12px;color:var(--t2);margin-bottom:8px;font-weight:600;}
+.pred-score{font-size:12px;margin-bottom:8px;font-weight:600;}
 .pred-ai-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .pred-verdict{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(0,200,255,.07);border:1px solid rgba(0,200,255,.2);color:var(--c);}
 .pred-conf{font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;}
 .pred-analysis{font-size:11px;color:var(--t2);line-height:1.65;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);}
+.pred-tip{font-size:10px;color:var(--t3);line-height:1.6;margin-top:6px;padding:6px 9px;border-radius:6px;background:rgba(255,255,255,.025);border:1px solid var(--line);}
 
 /* EMPTY */
 .empty-state{text-align:center;padding:60px 20px;}
@@ -127,7 +130,6 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="tb-brand">
     <div class="brand-logo">
@@ -144,10 +146,7 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
   </div>
 </div>
 
-<!-- PAGE -->
 <div class="page">
-
-  <!-- HERO -->
   <div class="hero">
     <div class="hero-tag">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>
@@ -155,6 +154,11 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
     </div>
     <h1>AI Prediction History</h1>
     <p>Full transparency — every prediction made, verified against the real result.</p>
+  </div>
+
+  <!-- SOURCE BADGE -->
+  <div style="text-align:center;margin-bottom:16px;">
+    <span class="source-badge" id="sourceBadge" style="display:none"></span>
   </div>
 
   <!-- ACCURACY -->
@@ -170,26 +174,10 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
       </div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-val" id="statTotal" style="color:var(--c)">0</div>
-        <div class="stat-lbl">Total</div>
-        <div class="stat-sub">predictions made</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="statCorrect" style="color:var(--g)">0</div>
-        <div class="stat-lbl">Correct</div>
-        <div class="stat-sub">predictions won</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="statWrong" style="color:var(--r)">0</div>
-        <div class="stat-lbl">Wrong</div>
-        <div class="stat-sub">predictions lost</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="statPending" style="color:var(--o)">0</div>
-        <div class="stat-lbl">Pending</div>
-        <div class="stat-sub">awaiting result</div>
-      </div>
+      <div class="stat-card"><div class="stat-val" id="statTotal" style="color:var(--c)">0</div><div class="stat-lbl">Total</div><div class="stat-sub">predictions made</div></div>
+      <div class="stat-card"><div class="stat-val" id="statCorrect" style="color:var(--g)">0</div><div class="stat-lbl">Correct</div><div class="stat-sub">predictions won</div></div>
+      <div class="stat-card"><div class="stat-val" id="statWrong" style="color:var(--r)">0</div><div class="stat-lbl">Wrong</div><div class="stat-sub">predictions lost</div></div>
+      <div class="stat-card"><div class="stat-val" id="statPending" style="color:var(--o)">0</div><div class="stat-lbl">Pending</div><div class="stat-sub">awaiting result</div></div>
     </div>
   </div>
 
@@ -214,7 +202,7 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
   </div>
 
   <!-- FILTERS -->
-  <div class="filter-bar" id="filterBar">
+  <div class="filter-bar">
     <div class="filter-btn active" onclick="setFilter('all',this)">All</div>
     <div class="filter-btn" onclick="setFilter('correct',this)">Correct</div>
     <div class="filter-btn" onclick="setFilter('wrong',this)">Wrong</div>
@@ -225,71 +213,99 @@ button{cursor:pointer;font-family:inherit;border:none;background:none;}
   <!-- LIST -->
   <div id="predList" class="pred-list">
     <div style="text-align:center;padding:40px;color:var(--t3);font-size:12px;">
-      <span class="spinner"></span> Loading…
+      <span class="spinner"></span> Loading predictions…
     </div>
   </div>
-
 </div>
 
 <script>
+var SUPABASE_URL = 'https://eodmgkcjytkhilxfyvrr.supabase.co';
+var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvZG1na2NqeXRraGlseGZ5dnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MTE3MzYsImV4cCI6MjA5NzE4NzczNn0.-nNJ1LLZOatrkaanyfd07ZTJ7IYiBXUA1jiUfaeXs3I';
 var LS_PREDS = 'stratos_predictions';
-var LS_BETS = 'stratos_bets';
-var CURRENT_FILTER = 'all';
 var ALL_PREDS = [];
+var CURRENT_FILTER = 'all';
+var DATA_SOURCE = 'none';
 
-/* ══ LOAD PREDICTIONS ══ */
-function loadPredictions(){
+/* ══ FETCH FROM SUPABASE ══ */
+async function fetchFromSupabase(){
+  try{
+    var res = await fetch(SUPABASE_URL + '/rest/v1/predictions?order=kickoff.desc&limit=100', {
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + SUPABASE_ANON,
+        'Content-Type': 'application/json'
+      }
+    });
+    if(!res.ok) throw new Error('Supabase error: ' + res.status);
+    var data = await res.json();
+    if(data && data.length){
+      DATA_SOURCE = 'supabase';
+      return data.map(function(p){
+        return {
+          id: p.id,
+          fixtureId: p.fixture_id,
+          match: p.match,
+          homeTeam: p.home_team,
+          awayTeam: p.away_team,
+          homeLogo: p.home_logo,
+          awayLogo: p.away_logo,
+          league: p.league,
+          kickoff: p.kickoff,
+          verdict: p.verdict,
+          confidence: p.confidence,
+          analysis: p.analysis,
+          tip: p.tip,
+          settled: p.settled,
+          won: p.won,
+          finalScore: p.final_score,
+          timestamp: p.created_at
+        };
+      });
+    }
+  }catch(e){ console.log('Supabase fetch failed:', e); }
+  return null;
+}
+
+/* ══ FETCH FROM LOCALSTORAGE ══ */
+function fetchFromLocal(){
   try{
     var raw = localStorage.getItem(LS_PREDS);
-    return raw ? JSON.parse(raw) : [];
-  }catch(e){return [];}
+    var preds = raw ? JSON.parse(raw) : [];
+    if(preds.length) DATA_SOURCE = 'local';
+    return preds;
+  }catch(e){ return []; }
 }
 
-function savePredictions(preds){
-  try{localStorage.setItem(LS_PREDS, JSON.stringify(preds));}catch(e){}
-}
-
-/* ══ AUTO-SETTLE predictions from bet results ══ */
-async function settlePredictions(){
-  var preds = loadPredictions();
-  var updated = false;
-  var pending = preds.filter(function(p){return !p.settled;});
-
-  for(var i=0;i<pending.length;i++){
+/* ══ SETTLE FROM check-results ══ */
+async function settlePredictions(preds){
+  var pending = preds.filter(function(p){ return !p.settled && p.kickoff && new Date(p.kickoff) < new Date(); });
+  for(var i=0; i<Math.min(pending.length, 3); i++){
     var pred = pending[i];
-    if(!pred.kickoff || new Date(pred.kickoff) > new Date()) continue;
     try{
-      var r = await fetch('https://stratosai.bet/.netlify/functions/check-results?fixtureId='+pred.fixtureId);
+      var r = await fetch('/.netlify/functions/check-results?fixtureId=' + pred.fixtureId);
       var d = await r.json();
       if(d.finished && d.result){
-        var idx = preds.findIndex(function(p){return p.id===pred.id;});
-        if(idx>=0){
+        var idx = preds.findIndex(function(p){ return p.id === pred.id; });
+        if(idx >= 0){
           preds[idx].settled = true;
-          preds[idx].result = d.result;
-          preds[idx].finalScore = d.homeGoals+'-'+d.awayGoals;
-          // Check if verdict matches result
-          var verdict = pred.verdict || '';
+          preds[idx].finalScore = d.homeGoals + '-' + d.awayGoals;
+          var vLower = (pred.verdict||'').toLowerCase();
           var home = (pred.homeTeam||'').toLowerCase();
-          var away = (pred.awayTeam||'').toLowerCase();
-          var vLower = verdict.toLowerCase();
-          var predictedWinner = vLower.includes('draw') ? 'X' :
-            (vLower.includes(home) || vLower.includes('home')) ? '1' : '2';
-          preds[idx].won = predictedWinner === d.result;
-          updated = true;
+          var predicted = vLower.includes('draw') ? 'X' : (vLower.includes(home) ? '1' : '2');
+          preds[idx].won = predicted === d.result;
         }
       }
     }catch(e){}
   }
-  if(updated) savePredictions(preds);
   return preds;
 }
 
 /* ══ RENDER STATS ══ */
 function renderStats(preds){
-  var settled = preds.filter(function(p){return p.settled;});
-  var correct = settled.filter(function(p){return p.won;});
-  var wrong = settled.filter(function(p){return !p.won;});
-  var pending = preds.filter(function(p){return !p.settled;});
+  var settled = preds.filter(function(p){ return p.settled; });
+  var correct = settled.filter(function(p){ return p.won; });
+  var wrong = settled.filter(function(p){ return !p.won; });
+  var pending = preds.filter(function(p){ return !p.settled; });
   var acc = settled.length ? Math.round((correct.length/settled.length)*100) : 0;
 
   document.getElementById('statTotal').textContent = preds.length;
@@ -298,79 +314,89 @@ function renderStats(preds){
   document.getElementById('statPending').textContent = pending.length;
   document.getElementById('accPct').textContent = settled.length ? acc+'%' : '—';
 
-  // Ring animation
   var ring = document.getElementById('ringFill');
-  var circumference = 283;
-  var offset = circumference - (acc/100)*circumference;
-  ring.style.strokeDashoffset = circumference;
-  setTimeout(function(){ring.style.transition='stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1)';ring.style.strokeDashoffset=offset;},100);
-  ring.style.stroke = acc>=70?'var(--g)':acc>=50?'var(--o)':'var(--r)';
-  document.getElementById('accPct').style.color = acc>=70?'var(--g)':acc>=50?'var(--o)':'var(--r)';
+  var offset = 283 - (acc/100)*283;
+  setTimeout(function(){ ring.style.strokeDashoffset = offset; }, 100);
+  var col = acc>=70?'var(--g)':acc>=50?'var(--o)':'var(--r)';
+  ring.style.stroke = col;
+  document.getElementById('accPct').style.color = col;
 
-  // Confidence bars
-  var byConf = {High:[],Medium:[],Low:[]};
-  settled.forEach(function(p){var c=p.confidence||'Low';if(!byConf[c])byConf[c]=[];byConf[c].push(p);});
-  function confAcc(arr){return arr.length?Math.round((arr.filter(function(p){return p.won;}).length/arr.length)*100):0;}
-  
   if(settled.length){
-    document.getElementById('confSection').style.display='block';
-    var hAcc=confAcc(byConf.High),mAcc=confAcc(byConf.Medium),lAcc=confAcc(byConf.Low);
-    document.getElementById('confHighBar').style.width=hAcc+'%';
-    document.getElementById('confMedBar').style.width=mAcc+'%';
-    document.getElementById('confLowBar').style.width=lAcc+'%';
-    document.getElementById('confHighStat').textContent=byConf.High.length?hAcc+'% ('+byConf.High.length+')':'—';
-    document.getElementById('confMedStat').textContent=byConf.Medium.length?mAcc+'% ('+byConf.Medium.length+')':'—';
-    document.getElementById('confLowStat').textContent=byConf.Low.length?lAcc+'% ('+byConf.Low.length+')':'—';
+    document.getElementById('confSection').style.display = 'block';
+    var byConf = {High:[],Medium:[],Low:[]};
+    settled.forEach(function(p){ var c=p.confidence||'Low'; if(byConf[c]) byConf[c].push(p); });
+    function confAcc(arr){ return arr.length ? Math.round((arr.filter(function(p){return p.won;}).length/arr.length)*100) : 0; }
+    var hA=confAcc(byConf.High), mA=confAcc(byConf.Medium), lA=confAcc(byConf.Low);
+    document.getElementById('confHighBar').style.width = hA+'%';
+    document.getElementById('confMedBar').style.width = mA+'%';
+    document.getElementById('confLowBar').style.width = lA+'%';
+    document.getElementById('confHighStat').textContent = byConf.High.length ? hA+'% ('+byConf.High.length+')' : '—';
+    document.getElementById('confMedStat').textContent = byConf.Medium.length ? mA+'% ('+byConf.Medium.length+')' : '—';
+    document.getElementById('confLowStat').textContent = byConf.Low.length ? lA+'% ('+byConf.Low.length+')' : '—';
+  }
+
+  // Source badge
+  var badge = document.getElementById('sourceBadge');
+  if(DATA_SOURCE === 'supabase'){
+    badge.className = 'source-badge source-supabase';
+    badge.innerHTML = '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg> Live from STRATOS AI Engine';
+    badge.style.display = 'inline-flex';
+  } else if(DATA_SOURCE === 'local'){
+    badge.className = 'source-badge source-local';
+    badge.innerHTML = '📱 From your session — open matches for AI analysis';
+    badge.style.display = 'inline-flex';
   }
 }
 
 /* ══ RENDER PREDICTIONS ══ */
 function renderPredictions(preds, filter){
   var filtered = preds;
-  if(filter==='correct') filtered=preds.filter(function(p){return p.settled&&p.won;});
-  else if(filter==='wrong') filtered=preds.filter(function(p){return p.settled&&!p.won;});
-  else if(filter==='pending') filtered=preds.filter(function(p){return !p.settled;});
-  else if(filter==='high') filtered=preds.filter(function(p){return p.confidence==='High';});
+  if(filter==='correct') filtered = preds.filter(function(p){ return p.settled && p.won; });
+  else if(filter==='wrong') filtered = preds.filter(function(p){ return p.settled && !p.won; });
+  else if(filter==='pending') filtered = preds.filter(function(p){ return !p.settled; });
+  else if(filter==='high') filtered = preds.filter(function(p){ return p.confidence==='High'; });
 
   var el = document.getElementById('predList');
 
   if(!preds.length){
-    el.innerHTML='<div class="empty-state">'+
+    el.innerHTML = '<div class="empty-state">'+
       '<div class="empty-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="1.5"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>'+
       '<div class="empty-title">No predictions yet</div>'+
-      '<div class="empty-sub">Open any match on the Sportsbook and tap to get the AI analysis. Predictions will appear here automatically.</div>'+
-      '<a href="index.html" class="empty-cta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>Open Sportsbook</a>'+
+      '<div class="empty-sub">AI predictions are generated daily. Open any match on the Sportsbook to get instant analysis.</div>'+
+      '<a href="index.html" class="empty-cta">Open Sportsbook →</a>'+
     '</div>';
     return;
   }
 
   if(!filtered.length){
-    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:12px;">No '+filter+' predictions.</div>';
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3);font-size:12px;">No '+filter+' predictions.</div>';
     return;
   }
 
   el.innerHTML = filtered.map(function(p){
     var statusClass = p.settled ? (p.won?'correct':'wrong') : 'pending';
-    var statusBadge = p.settled ? (p.won?'<span class="pred-status ps-correct">Correct</span>':'<span class="pred-status ps-wrong">Wrong</span>') : '<span class="pred-status ps-pending">Pending</span>';
+    var statusBadge = p.settled ?
+      (p.won ? '<span class="pred-status ps-correct">✓ Correct</span>' : '<span class="pred-status ps-wrong">✗ Wrong</span>') :
+      '<span class="pred-status ps-pending">Pending</span>';
     var ko = p.kickoff ? new Date(p.kickoff) : null;
     var timeStr = ko ? ko.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' · '+ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '';
     var confColor = p.confidence==='High'?'var(--g)':p.confidence==='Medium'?'var(--o)':'var(--t2)';
-    var scoreStr = p.finalScore ? ' · Final: <strong>'+p.finalScore+'</strong>' : '';
-    
+
     return '<div class="pred-card '+statusClass+'">'+
       '<div class="pred-head">'+
-        '<span class="pred-league">'+( p.league||'Match')+'</span>'+
+        '<span class="pred-league">'+(p.league||'Match')+'</span>'+
         statusBadge+
         '<span class="pred-time">'+timeStr+'</span>'+
       '</div>'+
       '<div class="pred-body">'+
         '<div class="pred-match">'+p.match+'</div>'+
-        (scoreStr?'<div class="pred-score" style="color:'+(p.won?'var(--g)':'var(--r)')+'">'+scoreStr+'</div>':'')+
-        '<div class="pred-ai-row">'+
+        (p.finalScore ? '<div class="pred-score" style="color:'+(p.won?'var(--g)':'var(--r)')+'">Final: '+p.finalScore+'</div>' : '')+
+        '<div class="pred-ai-row" style="margin-top:6px">'+
           '<div class="pred-verdict"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg>'+p.verdict+'</div>'+
           '<span class="pred-conf" style="color:'+confColor+';border:1px solid '+confColor+'22;background:'+confColor+'0f">'+p.confidence+'</span>'+
         '</div>'+
-        (p.analysis?'<div class="pred-analysis">'+p.analysis+'</div>':'')+
+        (p.analysis ? '<div class="pred-analysis">'+p.analysis+'</div>' : '')+
+        (p.tip ? '<div class="pred-tip">💡 '+p.tip+'</div>' : '')+
       '</div>'+
     '</div>';
   }).join('');
@@ -379,28 +405,32 @@ function renderPredictions(preds, filter){
 /* ══ FILTER ══ */
 function setFilter(f, btn){
   CURRENT_FILTER = f;
-  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
   renderPredictions(ALL_PREDS, f);
 }
 
 /* ══ INIT ══ */
 async function init(){
-  document.getElementById('predList').innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:12px;"><span class="spinner"></span> Checking results…</div>';
-  
-  // Settle pending predictions
-  ALL_PREDS = await settlePredictions();
-  
-  // If no predictions in localStorage, show empty state
-  if(!ALL_PREDS.length){
-    ALL_PREDS = loadPredictions();
+  // Try Supabase first
+  var preds = await fetchFromSupabase();
+
+  // Fallback to localStorage
+  if(!preds || !preds.length){
+    preds = fetchFromLocal();
+  }
+
+  // Settle pending
+  if(preds.length){
+    preds = await settlePredictions(preds);
   }
 
   // Sort newest first
-  ALL_PREDS.sort(function(a,b){return new Date(b.timestamp||0)-new Date(a.timestamp||0);});
+  preds.sort(function(a,b){ return new Date(b.kickoff||0) - new Date(a.kickoff||0); });
+  ALL_PREDS = preds;
 
-  renderStats(ALL_PREDS);
-  renderPredictions(ALL_PREDS, CURRENT_FILTER);
+  renderStats(preds);
+  renderPredictions(preds, CURRENT_FILTER);
 }
 
 init();
