@@ -773,13 +773,32 @@ function renderDetail(id,m,ai){
 function selectOdd(e,id,pick,label,odds){
   e.stopPropagation();
   var m=S.matches[id];if(!m)return;
-  var idx=S.betSlip.findIndex(function(b){return b.id===id;});
+
+  // Check if this exact selection already in slip
+  var idx=S.betSlip.findIndex(function(b){return b.id===id&&b.pick===pick;});
   if(idx>=0){
-    var old=S.betSlip[idx];var ob=document.getElementById('ob-'+id+'-'+old.pick);if(ob)ob.classList.remove('sel');
-    if(old.pick===pick){S.betSlip.splice(idx,1);}
-    else{S.betSlip[idx]={id:id,match:m.home+' vs '+m.away,pick:pick,label:label,odds:odds,fixtureId:m.id,kickoff:m.kickoff};var nb=document.getElementById('ob-'+id+'-'+pick);if(nb)nb.classList.add('sel');}
+    // Deselect
+    var ob=document.getElementById('ob-'+id+'-'+pick);if(ob)ob.classList.remove('sel');
+    S.betSlip.splice(idx,1);
   }else{
-    S.betSlip.push({id:id,match:m.home+' vs '+m.away,pick:pick,label:label,odds:odds,fixtureId:m.id,kickoff:m.kickoff});
+    // Remove any other pick for same match
+    var oldIdx=S.betSlip.findIndex(function(b){return b.id===id;});
+    if(oldIdx>=0){
+      var oldPick=S.betSlip[oldIdx].pick;
+      var oldBtn=document.getElementById('ob-'+id+'-'+oldPick);
+      if(oldBtn)oldBtn.classList.remove('sel');
+      S.betSlip.splice(oldIdx,1);
+    }
+    // Add new bet with individual stake
+    S.betSlip.push({
+      id:id,
+      betRef:'BET-'+Date.now()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),
+      match:m.home+' vs '+m.away,
+      league:m.league||'',
+      pick:pick,label:label,odds:odds,
+      fixtureId:m.id,kickoff:m.kickoff,
+      stake:100 // default stake per bet
+    });
     var nb=document.getElementById('ob-'+id+'-'+pick);if(nb)nb.classList.add('sel');
   }
   renderSlip();renderMobSlip();
