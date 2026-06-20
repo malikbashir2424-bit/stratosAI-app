@@ -567,6 +567,11 @@ function saveBets(b){try{localStorage.setItem(LS_BETS,JSON.stringify(b));}catch(
 function loadBets(){try{var r=localStorage.getItem(LS_BETS);return r?JSON.parse(r):[];}catch(e){return[];}}
 function addBet(bet){var b=loadBets();b.unshift(bet);if(b.length>100)b=b.slice(0,100);saveBets(b);}
 
+var LS_SLIPS='stratos_slips';
+function saveSlips(s){try{localStorage.setItem(LS_SLIPS,JSON.stringify(s));}catch(e){}}
+function loadSlips(){try{var r=localStorage.getItem(LS_SLIPS);return r?JSON.parse(r):[];}catch(e){return[];}}
+function saveSlip(slip){var s=loadSlips();s.unshift(slip);if(s.length>100)s=s.slice(0,100);saveSlips(s);}
+
 var TDB={9:{gs:2.80,gc:0.50,form:"WWWWW"},26:{gs:1.80,gc:0.90,form:"WWDWW"},1533:{gs:1.40,gc:1.00,form:"WDWLW"},1:{gs:2.40,gc:0.70,form:"WWWDW"},32:{gs:1.60,gc:0.80,form:"WWDWL"},23:{gs:1.50,gc:1.10,form:"WDWWL"},7:{gs:1.90,gc:0.80,form:"WWWLW"},22:{gs:1.70,gc:0.90,form:"WWDWW"},4673:{gs:1.30,gc:1.20,form:"WDLWW"},2:{gs:2.60,gc:0.60,form:"WWWWW"},13:{gs:1.80,gc:0.90,form:"WWDWL"},1567:{gs:1.60,gc:1.00,form:"WDWLW"},1090:{gs:2.10,gc:0.80,form:"WWWDW"},10:{gs:2.50,gc:0.70,form:"WWWWW"},6:{gs:2.20,gc:0.80,form:"WWDWW"},17:{gs:2.30,gc:0.90,form:"WWWDW"},5:{gs:2.70,gc:0.60,form:"WWWWW"},21:{gs:2.00,gc:0.70,form:"WWWDW"},18:{gs:2.10,gc:0.80,form:"WWDWW"},24:{gs:1.70,gc:0.60,form:"WWWDW"},25:{gs:1.90,gc:0.70,form:"WWWWD"},768:{gs:1.80,gc:0.90,form:"WDWWL"},3:{gs:1.60,gc:1.00,form:"WDWLW"}};
 var DEF={gs:1.40,gc:1.20,form:"WDLWL"};
 function gt(id){return TDB[id]||DEF;}
@@ -583,22 +588,38 @@ function calcOdds(m){
 }
 
 async function settleBets(){
-  var bets=loadBets(),upd=false;
-  var pending=bets.filter(function(b){return !b.settled;});
-  for(var i=0;i<pending.length;i++){
-    var bet=pending[i];
-    if(new Date(bet.kickoff)>new Date())continue;
-    try{
-      var r=await fetch('/.netlify/functions/check-results?fixtureId='+bet.fixtureId);
-      var d=await r.json();
-      if(d.finished&&d.result){
-        var idx=bets.findIndex(function(b){return b.betId===bet.betId;});
-        if(idx>=0){bets[idx].settled=true;bets[idx].result=d.result;bets[idx].won=(bet.pick===d.result);bets[idx].finalScore=d.homeGoals+'-'+d.awayGoals;upd=true;
-        if(bets[idx].won) sendPlatformEvent('winning_bet');}
-      }
-    }catch(e){}
+  var slips=loadSlips(),upd=false;
+  var pendingSlips=slips.filter(function(s){return !s.settled&&!s.cashedOut;});
+  for(var i=0;i<pendingSlips.length;i++){
+    var slip=pendingSlips[i];
+    var slipIdx=slips.findIndex(function(s){return s.slipId===slip.slipId;});
+    if(slipIdx<0)continue;
+    var allSettled=true, anyLost=false, selUpd=false;
+    for(var j=0;j<slip.selections.length;j++){
+      var sel=slip.selections[j];
+      if(sel.settled){ if(!sel.won)anyLost=true; continue; }
+      if(new Date(sel.kickoff)>new Date()){ allSettled=false; continue; }
+      try{
+        var r=await fetch('/.netlify/functions/check-results?fixtureId='+sel.fixtureId);
+        var d=await r.json();
+        if(d.finished&&d.result){
+          slips[slipIdx].selections[j].settled=true;
+          slips[slipIdx].selections[j].won=(sel.pick===d.result);
+          slips[slipIdx].selections[j].finalScore=d.homeGoals+'-'+d.awayGoals;
+          if(!slips[slipIdx].selections[j].won)anyLost=true;
+          selUpd=true; upd=true;
+        }else{ allSettled=false; }
+      }catch(e){ allSettled=false; }
+    }
+    // Settle slip: lost if any selection lost; won only if all won
+    if(anyLost){
+      slips[slipIdx].settled=true; slips[slipIdx].won=false; upd=true;
+    }else if(allSettled){
+      slips[slipIdx].settled=true; slips[slipIdx].won=true; upd=true;
+      sendPlatformEvent('winning_bet');
+    }
   }
-  if(upd){saveBets(bets);updateUserStats();}
+  if(upd){saveSlips(slips);updateUserStats();}
 }
 
 async function loadMatches(){
@@ -777,11 +798,11 @@ function selectOdd(e,id,pick,label,odds){
   // Check if this exact selection already in slip
   var idx=S.betSlip.findIndex(function(b){return b.id===id&&b.pick===pick;});
   if(idx>=0){
-    // Deselect
+    // Deselect this pick
     var ob=document.getElementById('ob-'+id+'-'+pick);if(ob)ob.classList.remove('sel');
     S.betSlip.splice(idx,1);
   }else{
-    // Remove any other pick for same match
+    // Replace any other pick for same match (can't bet 1 and X on same match)
     var oldIdx=S.betSlip.findIndex(function(b){return b.id===id;});
     if(oldIdx>=0){
       var oldPick=S.betSlip[oldIdx].pick;
@@ -789,15 +810,13 @@ function selectOdd(e,id,pick,label,odds){
       if(oldBtn)oldBtn.classList.remove('sel');
       S.betSlip.splice(oldIdx,1);
     }
-    // Add new bet with individual stake
+    // Add to current slip (accumulator — multiple matches allowed)
     S.betSlip.push({
       id:id,
-      betRef:'BET-'+Date.now()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),
       match:m.home+' vs '+m.away,
       league:m.league||'',
       pick:pick,label:label,odds:odds,
-      fixtureId:m.id,kickoff:m.kickoff,
-      stake:100 // default stake per bet
+      fixtureId:m.id,kickoff:m.kickoff
     });
     var nb=document.getElementById('ob-'+id+'-'+pick);if(nb)nb.classList.add('sel');
   }
@@ -824,30 +843,94 @@ function renderMobSlip(){updateCounts();document.getElementById('mobSlipContent'
 function updateCounts(){var n=S.betSlip.length;document.getElementById('bsCountD').textContent=n;document.getElementById('bsCountM').textContent=n;}
 function updatePot(sId,pId){var stake=parseFloat(document.getElementById(sId).value)||0;var tot=S.betSlip.reduce(function(a,b){return a*b.odds;},1);var el=document.getElementById(pId);if(el)el.textContent=(stake*tot).toFixed(2)+' $STRAT';}
 
-function placeBet(sId){
+function placeSlip(){
   if(!S.betSlip.length)return;
+  if(!SLIP_STAKE||SLIP_STAKE<BET_MIN){
+    alert('Minimum stake is '+BET_MIN+' $STRAT');
+    return;
+  }
+  var totOdds=S.betSlip.reduce(function(a,b){return a*b.odds;},1);
+  var potentialWin=parseFloat((SLIP_STAKE*totOdds).toFixed(2));
+  var isAcca=S.betSlip.length>1;
+
+  // Build slip object — one slip with all selections
+  var slip={
+    slipId:'SLIP-'+Date.now()+'-'+Math.random().toString(36).slice(2,5).toUpperCase(),
+    type:isAcca?'accumulator':'single',
+    selections:S.betSlip.map(function(b){
+      return {fixtureId:b.fixtureId,match:b.match,league:b.league||'',pick:b.pick,label:b.label,odds:b.odds,kickoff:b.kickoff,settled:false,won:null,finalScore:null};
+    }),
+    totalOdds:totOdds,
+    stake:SLIP_STAKE,
+    potentialWin:potentialWin,
+    timestamp:new Date().toISOString(),
+    settled:false,
+    won:null,
+    cashedOut:false
+  };
+
+  saveSlip(slip);
   sendPlatformEvent('place_bet');
-  var el=document.getElementById(sId);var stake=parseFloat(el?el.value:100)||100;
-  var tot=S.betSlip.reduce(function(a,b){return a*b.odds;},1);var pot=(stake*tot).toFixed(2);
-  var picks=S.betSlip.map(function(b){return b.label+' @ '+b.odds.toFixed(2);}).join(' + ');
-  S.betSlip.forEach(function(b){addBet({betId:b.fixtureId+'-'+b.pick+'-'+Date.now(),fixtureId:b.fixtureId,match:b.match,pick:b.pick,label:b.label,odds:b.odds,stake:stake,potentialWin:parseFloat(pot),kickoff:b.kickoff,timestamp:new Date().toISOString(),settled:false,result:null,won:null,finalScore:null});});
-  document.getElementById('toastBody').innerHTML='<strong style="color:#fff">'+picks+'</strong><br>Stake: <strong style="color:#fff">'+stake+' $STRAT</strong> · Win: <strong style="color:var(--g)">'+pot+' $STRAT</strong>';
+
+  var picks=S.betSlip.map(function(b){return b.label+' @ '+fmtOdds(b.odds);}).join(' + ');
+  document.getElementById('toastBody').innerHTML=
+    '<strong style="color:#fff">'+(isAcca?S.betSlip.length+'-Fold Accumulator':'Single Bet')+'</strong><br>'+
+    picks+
+    '<br><br>Stake: <strong style="color:#fff">'+SLIP_STAKE+' $STRAT</strong> · Returns: <strong style="color:var(--g)">'+potentialWin+' $STRAT</strong>';
   document.getElementById('toastOverlay').classList.add('show');
+
+  // Clear selections
   S.betSlip.forEach(function(b){var btn=document.getElementById('ob-'+b.id+'-'+b.pick);if(btn)btn.classList.remove('sel');});
-  S.betSlip=[];renderSlip();renderMobSlip();updateUserStats();updateMyBetsNavCount();
+  S.betSlip=[];SLIP_STAKE=100;
+  renderSlip();renderMobSlip();updateUserStats();updateMyBetsNavCount();
   if(S.activeTab==='bets')renderMyBets();if(S.mobTab==='bets')renderMobBets();
 }
+// Aliases for backward compat
+function placeBet(sId){placeSlip();}
+function placeAllBets(){placeSlip();}
 function closeToast(){document.getElementById('toastOverlay').classList.remove('show');}
 
 function betsHTML(){
-  var bets=loadBets();
-  if(!bets.length)return '<div class="bs-empty">No bets yet. Select odds to get started.</div>';
-  var settled=bets.filter(function(b){return b.settled;}),won=settled.filter(function(b){return b.won;});
+  var slips=loadSlips();
+  if(!slips.length)return '<div class="bs-empty">No bets yet. Select odds to get started.</div>';
+  var settled=slips.filter(function(s){return s.settled||s.cashedOut;}),won=settled.filter(function(s){return s.won&&!s.cashedOut;});
   var wr=settled.length?((won.length/settled.length)*100).toFixed(0)+'%':'—';
-  var stats='<div class="mb-stats"><div class="mb-stat"><div class="mb-v" style="color:var(--c)">'+bets.length+'</div><div class="mb-l">Total</div></div><div class="mb-stat"><div class="mb-v" style="color:var(--g)">'+won.length+'</div><div class="mb-l">Won</div></div><div class="mb-stat"><div class="mb-v" style="color:var(--g)">'+wr+'</div><div class="mb-l">Win Rate</div></div></div>';
-  var rows=bets.map(function(b){var sc=b.settled?(b.won?'bi-won':'bi-lost'):'bi-pend';var st=b.settled?(b.won?'Won':'Lost'):'Pending';return '<div class="bet-item"><div class="bi-match">'+b.match+'</div><div class="bi-pick">'+b.label+' ('+b.pick+') @ <span style="color:var(--c)">'+b.odds.toFixed(2)+'</span></div><div class="bi-row"><span>'+b.stake+' → <strong style="color:var(--g)">'+b.potentialWin+'</strong>'+(b.finalScore?' · '+b.finalScore:'')+'</span><span class="bi-badge '+sc+'">'+st+'</span></div></div>';}).join('');
+  var stats='<div class="mb-stats"><div class="mb-stat"><div class="mb-v" style="color:var(--c)">'+slips.length+'</div><div class="mb-l">Slips</div></div><div class="mb-stat"><div class="mb-v" style="color:var(--g)">'+won.length+'</div><div class="mb-l">Won</div></div><div class="mb-stat"><div class="mb-v" style="color:var(--g)">'+wr+'</div><div class="mb-l">Win Rate</div></div></div>';
+  var rows=slips.map(function(s){return slipCardHTML(s);}).join('');
   return stats+rows;
 }
+
+function slipCardHTML(s){
+  var statusClass=s.cashedOut?'bi-won':s.settled?(s.won?'bi-won':'bi-lost'):'bi-pend';
+  var statusText=s.cashedOut?'Cashed Out':s.settled?(s.won?'Won':'Lost'):'Pending';
+  var typeLabel=s.type==='accumulator'?s.selections.length+'-Fold Acca':'Single';
+  var coVal=calcCashOut(s);
+  var safeId=String(s.slipId).replace(/'/g,'');
+  var coBtn=(!s.settled&&!s.cashedOut&&coVal)?'<button class="cashout-btn" onclick="doCashOut(\''+safeId+'\')"><span>Cash Out</span><span class="cashout-val">'+coVal+' $STRAT</span></button>':'';
+
+  var selRows=s.selections.map(function(sel){
+    var selIcon=sel.settled?(sel.won?'<span style="color:var(--g)">✓</span>':'<span style="color:var(--r)">✗</span>'):'<span style="color:var(--o)">○</span>';
+    return '<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;border-bottom:1px solid var(--line)">'+
+      selIcon+
+      '<div style="flex:1"><div style="color:var(--t1);font-weight:600">'+sel.label+' <span style="color:var(--t3)">('+sel.pick+')</span></div><div style="color:var(--t3);font-size:9px">'+sel.match+(sel.finalScore?' · '+sel.finalScore:'')+'</div></div>'+
+      '<span style="color:var(--c);font-weight:700">'+fmtOdds(sel.odds)+'</span>'+
+    '</div>';
+  }).join('');
+
+  return '<div class="bet-item" style="padding:11px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+      '<span style="font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--p);text-transform:uppercase">'+typeLabel+'</span>'+
+      '<span class="bi-badge '+statusClass+'">'+statusText+'</span>'+
+    '</div>'+
+    selRows+
+    '<div class="bi-row" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--line2)">'+
+      '<span style="font-size:10px;color:var(--t2)">Stake <strong style="color:var(--t1)">'+s.stake+'</strong> · Odds <strong style="color:var(--c)">'+s.totalOdds.toFixed(2)+'</strong></span>'+
+      '<span style="font-size:11px;font-weight:800;color:'+(s.cashedOut?'var(--o)':s.settled?(s.won?'var(--g)':'var(--r)'):'var(--g)')+'">'+(s.settled||s.cashedOut?(s.won||s.cashedOut?'+'+s.potentialWin:'-'+s.stake):s.potentialWin+' →')+'</span>'+
+    '</div>'+
+    coBtn+
+  '</div>';
+}
+
 function renderMyBets(){document.getElementById('betsContent').innerHTML=betsHTML();}
 function renderMobBets(){document.getElementById('mobBetsContent').innerHTML=betsHTML();}
 
@@ -864,21 +947,21 @@ function switchMobTab(t){
 
 function renderLeaderboard(elId){
   var el=document.getElementById(elId);
-  var bets=loadBets();
-  if(!bets.length){el.innerHTML='<div class="bs-empty">No bets yet.</div>';return;}
-  var settled=bets.filter(function(b){return b.settled;}),won=settled.filter(function(b){return b.won;});
+  var slips=loadSlips();
+  if(!slips.length){el.innerHTML='<div class="bs-empty">No bets yet.</div>';return;}
+  var settled=slips.filter(function(s){return s.settled||s.cashedOut;}),won=settled.filter(function(s){return s.won;});
   var wr=settled.length?((won.length/settled.length)*100).toFixed(0)+'%':'—';
-  var html='<div style="font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--c);text-transform:uppercase;margin-bottom:8px">Your Record</div><div class="mb-stats"><div class="mb-stat"><div class="mb-v" style="color:var(--c)">'+bets.length+'</div><div class="mb-l">Bets</div></div><div class="mb-stat"><div class="mb-v" style="color:var(--g)">'+won.length+'</div><div class="mb-l">Won</div></div><div class="mb-stat"><div class="mb-v" style="color:var(--g)">'+wr+'</div><div class="mb-l">Win Rate</div></div></div>';
-  var topWins=bets.filter(function(b){return b.won;}).sort(function(a,b){return b.odds-a.odds;}).slice(0,5);
-  if(topWins.length){html+='<div style="margin-top:12px;font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--c);text-transform:uppercase;margin-bottom:8px">Best Wins</div>'+topWins.map(function(b,i){var g=['#FFD700','#C0C0C0','#CD7F32'];var ri=i<3?'<svg width="10" height="10" viewBox="0 0 24 24" fill="'+g[i]+'"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>':(i+1);return '<div class="lb-row"><div class="lb-rank">'+ri+'</div><div class="lb-name">'+b.match+'</div><div class="lb-pts">'+b.odds.toFixed(2)+'x</div></div>';}).join('');}
+  var html='<div style="font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--c);text-transform:uppercase;margin-bottom:8px">Your Record</div><div class="mb-stats"><div class="mb-stat"><div class="mb-v" style="color:var(--c)">'+slips.length+'</div><div class="mb-l">Slips</div></div><div class="mb-stat"><div class="mb-v" style="color:var(--g)">'+won.length+'</div><div class="mb-l">Won</div></div><div class="mb-stat"><div class="mb-v" style="color:var(--g)">'+wr+'</div><div class="mb-l">Win Rate</div></div></div>';
+  var topWins=slips.filter(function(s){return s.won;}).sort(function(a,b){return b.totalOdds-a.totalOdds;}).slice(0,5);
+  if(topWins.length){html+='<div style="margin-top:12px;font-size:9px;font-weight:800;letter-spacing:.1em;color:var(--c);text-transform:uppercase;margin-bottom:8px">Best Wins</div>'+topWins.map(function(s,i){var g=['#FFD700','#C0C0C0','#CD7F32'];var ri=i<3?'<svg width="10" height="10" viewBox="0 0 24 24" fill="'+g[i]+'"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>':(i+1);var label=s.selections.length>1?s.selections.length+'-Fold':s.selections[0].match;return '<div class="lb-row"><div class="lb-rank">'+ri+'</div><div class="lb-name">'+label+'</div><div class="lb-pts">'+s.totalOdds.toFixed(2)+'x</div></div>';}).join('');}
   el.innerHTML=html;
 }
 
 function updateUserStats(){
-  var bets=loadBets();
-  var settled=bets.filter(function(b){return b.settled;}),won=settled.filter(function(b){return b.won;});
+  var slips=loadSlips();
+  var settled=slips.filter(function(s){return s.settled||s.cashedOut;}),won=settled.filter(function(s){return s.won;});
   var wr=settled.length?((won.length/settled.length)*100).toFixed(0)+'%':'—';
-  document.getElementById('us-bets').textContent=bets.length;
+  document.getElementById('us-bets').textContent=slips.length;
   document.getElementById('us-won').textContent=won.length;
   document.getElementById('us-wr').textContent=wr;
   updateAiAccuracy();
@@ -1041,22 +1124,37 @@ function clearSearch(){
 /* ══ STAKE LIMITS ══ */
 function setStakeLimit(val,sid){var el=document.getElementById(sid);if(el){el.value=val;updatePot(sid,sid==='stakeD'?'potD':'potM');}}
 
-/* ══ CASH OUT ══ */
-function calcCashOut(bet){
-  if(!bet||!bet.odds||bet.settled)return null;
-  var elapsed=(new Date()-new Date(bet.kickoff))/60000;
-  if(elapsed<0||elapsed>95)return null;
-  return parseFloat((bet.stake*0.9).toFixed(2));
+/* ══ CASH OUT — slip based ══ */
+function calcCashOut(slip){
+  if(!slip||slip.settled||slip.cashedOut)return null;
+  // Only allow cashout if at least one selection in progress and none lost yet
+  var anyLost=slip.selections.some(function(s){return s.settled&&!s.won;});
+  if(anyLost)return null;
+  // Check at least one selection is live or all upcoming
+  var now=new Date();
+  var anyStarted=slip.selections.some(function(s){
+    var el=(now-new Date(s.kickoff))/60000;
+    return el>0&&el<95;
+  });
+  var allUpcoming=slip.selections.every(function(s){return new Date(s.kickoff)>now;});
+  if(!anyStarted&&!allUpcoming)return null;
+  // Cashout value: 90% of stake if upcoming, scaled by won selections if live
+  var wonCount=slip.selections.filter(function(s){return s.settled&&s.won;}).length;
+  var base=slip.stake*0.9;
+  var bonus=wonCount*(slip.potentialWin-slip.stake)*0.3;
+  return parseFloat((base+bonus).toFixed(2));
 }
-function doCashOut(betId){
-  var bets=loadBets(),idx=bets.findIndex(function(b){return b.betId===betId;});
+function doCashOut(slipId){
+  var slips=loadSlips(),idx=slips.findIndex(function(s){return s.slipId===slipId;});
   if(idx<0)return;
-  var coVal=calcCashOut(bets[idx]);if(coVal===null)return;
-  bets[idx].settled=true;bets[idx].won=true;bets[idx].cashOut=true;bets[idx].potentialWin=coVal;bets[idx].result='CO';
-  saveBets(bets);updateUserStats();
-  document.getElementById('toastBody').innerHTML='Cash out: <strong style="color:var(--o)">'+coVal+' $STRAT</strong>';
+  var coVal=calcCashOut(slips[idx]);if(coVal===null)return;
+  slips[idx].cashedOut=true;slips[idx].settled=true;slips[idx].won=true;slips[idx].potentialWin=coVal;
+  saveSlips(slips);updateUserStats();updateMyBetsNavCount();
+  document.getElementById('toastBody').innerHTML='Cashed out: <strong style="color:var(--o)">'+coVal+' $STRAT</strong>';
   document.getElementById('toastOverlay').classList.add('show');
-  if(document.getElementById('myBetsOverlay').classList.contains('show'))renderMyBetsPage(MB_FILTER);
+  if(S.activeTab==='bets')renderMyBets();if(S.mobTab==='bets')renderMobBets();
+  var ov=document.getElementById('myBetsOverlay');
+  if(ov&&ov.classList.contains('show'))renderMyBetsPage(MB_FILTER);
 }
 
 /* ══ ACCUMULATOR ══ */
@@ -1067,39 +1165,49 @@ var MB_FILTER='all';
 function openMyBets(){renderMyBetsPage(MB_FILTER);document.getElementById('myBetsOverlay').classList.add('show');document.body.style.overflow='hidden';}
 function closeMyBets(){document.getElementById('myBetsOverlay').classList.remove('show');document.body.style.overflow='';}
 function filterMyBets(f,btn){MB_FILTER=f;document.querySelectorAll('.mf-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderMyBetsPage(f);}
-function clearAllBets(){if(!confirm('Clear all bet history?'))return;saveBets([]);updateUserStats();renderMyBetsPage('all');updateMyBetsNavCount();}
+function clearAllBets(){if(!confirm('Clear all bet history?'))return;saveSlips([]);updateUserStats();renderMyBetsPage('all');updateMyBetsNavCount();}
 function updateMyBetsNavCount(){
-  var pending=loadBets().filter(function(b){return !b.settled;});
+  var pending=loadSlips().filter(function(s){return !s.settled&&!s.cashedOut;});
   var el=document.getElementById('myBetsNavCount');
   if(el){if(pending.length){el.textContent=pending.length;el.style.display='inline';}else{el.style.display='none';}}
 }
 function renderMyBetsPage(filter){
-  var bets=loadBets();
-  var settled=bets.filter(function(b){return b.settled;}),won=settled.filter(function(b){return b.won&&!b.cashOut;}),lost=settled.filter(function(b){return !b.won;}),pending=bets.filter(function(b){return !b.settled;});
+  var slips=loadSlips();
+  var settled=slips.filter(function(s){return s.settled||s.cashedOut;});
+  var won=settled.filter(function(s){return s.won;});
+  var lost=settled.filter(function(s){return !s.won&&!s.cashedOut;});
+  var pending=slips.filter(function(s){return !s.settled&&!s.cashedOut;});
   var wr=settled.length?((won.length/settled.length)*100).toFixed(0)+'%':'—';
-  var totalStaked=bets.reduce(function(a,b){return a+(b.stake||0);},0);
+  var totalStaked=slips.reduce(function(a,s){return a+(s.stake||0);},0);
   document.getElementById('mbStatGrid').innerHTML=
-    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--c)">'+bets.length+'</div><div class="mbs-lbl">Total</div></div>'+
+    '<div class="mbs-cell"><div class="mbs-val" style="color:var(--c)">'+slips.length+'</div><div class="mbs-lbl">Slips</div></div>'+
     '<div class="mbs-cell"><div class="mbs-val" style="color:var(--g)">'+won.length+'</div><div class="mbs-lbl">Won</div></div>'+
     '<div class="mbs-cell"><div class="mbs-val" style="color:var(--g)">'+wr+'</div><div class="mbs-lbl">Win Rate</div></div>'+
     '<div class="mbs-cell"><div class="mbs-val" style="color:var(--o)">'+totalStaked.toFixed(0)+'</div><div class="mbs-lbl">Staked</div></div>';
-  var filtered=filter==='pending'?pending:filter==='won'?won:filter==='lost'?lost:bets;
-  if(!filtered.length){document.getElementById('mbBetList').innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">No '+filter+' bets.</div>';return;}
-  document.getElementById('mbBetList').innerHTML=filtered.map(function(b){
-    var sc=b.settled?(b.won?'bi-won':'bi-lost'):'bi-pend';
-    var st=b.settled?(b.won?(b.cashOut?'Cashed Out':'Won'):'Lost'):'Pending';
-    var coVal=calcCashOut(b);
-    var safeId=String(b.betId).replace(/'/g,'');
-    var coBtn=(!b.settled&&coVal)?'<button class="cashout-btn" onclick="doCashOut(\'' + safeId + '\')"><span>Cash Out</span><span class="cashout-val">'+coVal+' $STRAT</span></button>':'';
-    var diff=(Date.now()-new Date(b.timestamp))/1000;
+  var filtered=filter==='pending'?pending:filter==='won'?won:filter==='lost'?lost:slips;
+  if(!filtered.length){document.getElementById('mbBetList').innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">No '+filter+' slips.</div>';return;}
+  document.getElementById('mbBetList').innerHTML=filtered.map(function(s){
+    var statusClass=s.cashedOut?'bi-won':s.settled?(s.won?'bi-won':'bi-lost'):'bi-pend';
+    var statusText=s.cashedOut?'Cashed Out':s.settled?(s.won?'Won':'Lost'):'Pending';
+    var typeLabel=s.type==='accumulator'?s.selections.length+'-Fold Accumulator':'Single Bet';
+    var coVal=calcCashOut(s);
+    var safeId=String(s.slipId).replace(/'/g,'');
+    var coBtn=(!s.settled&&!s.cashedOut&&coVal)?'<button class="cashout-btn" onclick="doCashOut(\''+safeId+'\')"><span>Cash Out</span><span class="cashout-val">'+coVal+' $STRAT</span></button>':'';
+    var diff=(Date.now()-new Date(s.timestamp))/1000;
     var ago=diff<60?'Just now':diff<3600?Math.floor(diff/60)+'m ago':diff<86400?Math.floor(diff/3600)+'h ago':Math.floor(diff/86400)+'d ago';
+    var selRows=s.selections.map(function(sel){
+      var selIcon=sel.settled?(sel.won?'<span style="color:var(--g)">✓</span>':'<span style="color:var(--r)">✗</span>'):'<span style="color:var(--o)">○</span>';
+      return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;font-size:11px;border-bottom:1px solid var(--line)">'+
+        selIcon+
+        '<div style="flex:1"><div style="color:var(--t1);font-weight:600">'+sel.label+' <span style="color:var(--t3);font-size:10px">('+sel.pick+')</span></div><div style="color:var(--t3);font-size:9px">'+sel.match+(sel.finalScore?' · '+sel.finalScore:'')+'</div></div>'+
+        '<span style="color:var(--c);font-weight:700">'+fmtOdds(sel.odds)+'</span>'+
+      '</div>';
+    }).join('');
     return '<div class="bet-card">'+
-      '<div class="bet-card-head"><span class="bet-card-league">'+(b.league||'Match')+'</span><span class="bet-card-time">'+ago+'</span></div>'+
-      '<div class="bet-card-match">'+b.match+'</div>'+
-      '<div class="bet-card-pick"><span style="font-size:11px;color:var(--t2)">'+b.label+' ('+b.pick+')</span><span style="flex:1"></span><span class="bet-card-odds">'+fmtOdds(b.odds)+'</span><span class="bi-badge '+sc+'" style="margin-left:6px">'+st+'</span></div>'+
+      '<div class="bet-card-head"><span class="bet-card-league" style="color:var(--p)">'+typeLabel+'</span><span class="bet-card-time">'+ago+'</span><span class="bi-badge '+statusClass+'" style="margin-left:6px">'+statusText+'</span></div>'+
+      '<div style="margin:6px 0">'+selRows+'</div>'+
       coBtn+
-      '<div class="bet-card-footer"><span class="bet-card-stake">Stake: <strong style="color:var(--t1)">'+b.stake+' $STRAT</strong></span><span style="font-size:11px;font-weight:700;color:'+(b.settled?(b.won?'var(--g)':'var(--r)'):'var(--o)')+'">'+( b.settled?(b.won?'+'+b.potentialWin:'-'+b.stake):b.potentialWin+' potential')+'</span></div>'+
-      (b.finalScore?'<div style="font-size:9px;color:var(--t3);margin-top:4px">Final: '+b.finalScore+'</div>':'')+
+      '<div class="bet-card-footer"><span class="bet-card-stake">Stake: <strong style="color:var(--t1)">'+s.stake+'</strong> · Odds: <strong style="color:var(--c)">'+s.totalOdds.toFixed(2)+'</strong></span><span style="font-size:11px;font-weight:700;color:'+(s.cashedOut?'var(--o)':s.settled?(s.won?'var(--g)':'var(--r)'):'var(--o)')+'">'+(s.settled||s.cashedOut?(s.won?'+'+s.potentialWin:'-'+s.stake):s.potentialWin+' potential')+'</span></div>'+
     '</div>';
   }).join('');
 }
@@ -1118,28 +1226,59 @@ function oddBtn(mId,pick,label,val){
   return '<div class="odd" id="ob-'+mId+'-'+pick+'" data-raw="'+val+'" onclick="selectOdd(event,'+mId+',\''+pick+'\',\''+label+'\','+val+')"><span class="odd-lbl">'+label+'</span><span class="odd-val">'+fmtOdds(val)+'</span></div>';
 }
 
-/* ══ OVERRIDE slipHTML — acca + limits ══ */
-function slipHTML(sid,pid){
-  if(!S.betSlip.length)return '<div class="bs-empty">Select odds to build your slip</div>';
-  var tot=S.betSlip.reduce(function(a,b){return a*b.odds;},1);
-  var bonus=accaBonus(S.betSlip.length),boosted=tot*(1+bonus/100);
-  var stake=100,pot=(stake*boosted).toFixed(2);
-  var items=S.betSlip.map(function(b){return '<div class="bs-item"><button class="bs-remove" onclick="removeBetFromSlip('+b.id+')">✕</button><div class="bs-item-match">'+b.match+'</div><div class="bs-item-pick">'+b.label+' <span style="font-size:9px;color:var(--t3)">('+b.pick+')</span></div><div class="bs-item-odds">'+fmtOdds(b.odds)+'</div></div>';}).join('');
-  var accaHtml=bonus?'<div class="acca-summary"><div class="acca-title">Accumulator <span class="acca-boost">+'+bonus+'% Bonus</span></div><div class="acca-row"><span class="acca-lbl">Base odds</span><span style="color:var(--t2)">'+tot.toFixed(2)+'</span></div><div class="acca-row"><span class="acca-lbl">Boosted odds</span><span class="acca-val">'+boosted.toFixed(2)+'</span></div></div>':'';
-  return items+accaHtml+
-    '<input id="'+sid+'" class="bs-stake" type="number" min="'+BET_MIN+'" max="'+BET_MAX+'" placeholder="Stake ($STRAT)" value="'+stake+'" oninput="updatePot(\''+sid+'\',\''+pid+'\')" style="margin-top:8px">'+
-    '<div class="bet-limits"><button class="limit-btn" onclick="setStakeLimit('+BET_MIN+',\''+sid+'\')">Min</button><button class="limit-btn" onclick="setStakeLimit(100,\''+sid+'\')">100</button><button class="limit-btn" onclick="setStakeLimit(500,\''+sid+'\')">500</button><button class="limit-btn" onclick="setStakeLimit('+BET_MAX+',\''+sid+'\')">Max</button></div>'+
-    '<div class="bs-summary" style="margin-top:8px"><div class="bs-srow"><span class="bs-slbl">Selections</span><span class="bs-sval">'+S.betSlip.length+'</span></div><div class="bs-srow"><span class="bs-slbl">Total odds</span><span class="bs-sval">'+boosted.toFixed(2)+(bonus?'<span style="font-size:8px;color:var(--p);margin-left:3px">+'+bonus+'%</span>':'')+'</span></div><div class="bs-srow" style="border-top:1px solid var(--line);padding-top:5px;margin-top:3px"><span class="bs-slbl">Potential win</span><span class="bs-pot" id="'+pid+'">'+pot+' $STRAT</span></div></div>'+
-    '<button class="bs-place" onclick="placeBet(\''+sid+'\')">Place Demo Bet</button>'+
-    '<div class="bs-disclaimer">Demo · Min '+BET_MIN+' · Max '+BET_MAX+' $STRAT</div>';
+/* ══ SLIP HTML — Single accumulator slip ══ */
+var SLIP_STAKE = 100;
+
+function setSlipStake(val){
+  SLIP_STAKE = parseFloat(val)||0;
+  updateSlipReturns();
 }
 
-/* ══ OVERRIDE updatePot — acca aware ══ */
-function updatePot(sid,pid){
-  var stake=parseFloat(document.getElementById(sid).value)||0;
-  var tot=S.betSlip.reduce(function(a,b){return a*b.odds;},1);
-  var boosted=tot*(1+accaBonus(S.betSlip.length)/100);
-  var el=document.getElementById(pid);if(el)el.textContent=(stake*boosted).toFixed(2)+' $STRAT';
+function setSlipStakeBtn(amount){
+  SLIP_STAKE = amount;
+  ['stakeD','stakeM'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=amount;});
+  updateSlipReturns();
+}
+
+function updateSlipReturns(){
+  var totOdds = S.betSlip.reduce(function(a,b){return a*b.odds;},1);
+  var ret = (SLIP_STAKE*totOdds).toFixed(2);
+  ['D','M'].forEach(function(sfx){
+    var el=document.getElementById('slipReturns'+sfx);
+    if(el)el.textContent=ret+' $STRAT';
+  });
+}
+
+function slipHTML(sid,pid){
+  if(!S.betSlip.length)return '<div class="bs-empty">Select odds to build your slip</div>';
+  var sfx = sid==='stakeD' ? 'D' : 'M';
+  var totOdds = S.betSlip.reduce(function(a,b){return a*b.odds;},1);
+  var ret = (SLIP_STAKE*totOdds).toFixed(2);
+  var isAcca = S.betSlip.length>1;
+
+  var items=S.betSlip.map(function(b){
+    return '<div class="bs-item">'+
+      '<button class="bs-remove" onclick="removeBetFromSlip('+b.id+')">✕</button>'+
+      '<div class="bs-item-match">'+b.match+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between">'+
+        '<div class="bs-item-pick">'+b.label+' <span style="font-size:9px;color:var(--t3)">('+b.pick+')</span></div>'+
+        '<div class="bs-item-odds">'+fmtOdds(b.odds)+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  var accaTag = isAcca ? '<div style="font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--p);text-transform:uppercase;margin:6px 0 4px;display:flex;align-items:center;gap:5px"><span style="width:5px;height:5px;border-radius:50%;background:var(--p)"></span>'+S.betSlip.length+'-Fold Accumulator</div>' : '';
+
+  return items + accaTag +
+    '<input id="'+sid+'" class="bs-stake" type="number" min="'+BET_MIN+'" max="'+BET_MAX+'" value="'+SLIP_STAKE+'" placeholder="Stake ($STRAT)" oninput="setSlipStake(this.value)" style="margin-top:8px">'+
+    '<div class="bet-limits"><button class="limit-btn" onclick="setSlipStakeBtn('+BET_MIN+')">Min</button><button class="limit-btn" onclick="setSlipStakeBtn(100)">100</button><button class="limit-btn" onclick="setSlipStakeBtn(500)">500</button><button class="limit-btn" onclick="setSlipStakeBtn('+BET_MAX+')">Max</button></div>'+
+    '<div class="bs-summary" style="margin-top:8px">'+
+      '<div class="bs-srow"><span class="bs-slbl">Selections</span><span class="bs-sval">'+S.betSlip.length+'</span></div>'+
+      '<div class="bs-srow"><span class="bs-slbl">Total odds</span><span class="bs-sval">'+totOdds.toFixed(2)+'</span></div>'+
+      '<div class="bs-srow" style="border-top:1px solid var(--line);padding-top:5px;margin-top:3px"><span class="bs-slbl">Potential returns</span><span class="bs-pot" id="slipReturns'+sfx+'">'+ret+' $STRAT</span></div>'+
+    '</div>'+
+    '<button class="bs-place" onclick="placeSlip()">Place Bet →</button>'+
+    '<div class="bs-disclaimer">Demo · '+(isAcca?'Accumulator — all selections must win':'Single bet')+' · Min '+BET_MIN+' $STRAT</div>';
 }
 
 /* ══ OVERRIDE updateAiAccuracy — show badge ══ */
