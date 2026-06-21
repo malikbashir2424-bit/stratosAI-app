@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STRATOS AI — Live Metrics</title>
+<style>
+:root{--bg:#0b0d13;--card:#161d2b;--line:#1e2a3d;--cyan:#00c8ff;--green:#00e87a;--orange:#f59e0b;--purple:#a78bfa;--t1:#f1f5f9;--t2:#94a3b8;--t3:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--t1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:20px;}
+.wrap{max-width:1000px;margin:0 auto;}
+.head{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--cyan);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(0,200,255,.4);}
+h1{font-size:22px;font-weight:800;letter-spacing:1px;}
+.sub{color:var(--t2);font-size:13px;margin-bottom:24px;}
+.live{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;}
+.stat-v{font-size:32px;font-weight:800;line-height:1;margin-bottom:6px;}
+.stat-l{font-size:12px;color:var(--t2);font-weight:600;}
+.stat-sub{font-size:11px;color:var(--t3);margin-top:4px;}
+.section{font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--cyan);text-transform:uppercase;margin:20px 0 12px;}
+.loading{color:var(--t3);font-size:13px;padding:40px;text-align:center;}
+.err{color:var(--orange);font-size:12px;text-align:center;padding:20px;}
+.foot{color:var(--t3);font-size:11px;text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" stroke="#0b0d13" stroke-width="7"><rect x="24" y="24" width="52" height="52" rx="6"/><rect x="40" y="40" width="20" height="20" rx="2" fill="#0b0d13"/><g stroke-linecap="square"><line x1="35" y1="14" x2="35" y2="24"/><line x1="50" y1="14" x2="50" y2="24"/><line x1="65" y1="14" x2="65" y2="24"/><line x1="35" y1="76" x2="35" y2="86"/><line x1="50" y1="76" x2="50" y2="86"/><line x1="65" y1="76" x2="65" y2="86"/><line x1="14" y1="35" x2="24" y2="35"/><line x1="14" y1="50" x2="24" y2="50"/><line x1="14" y1="65" x2="24" y2="65"/><line x1="76" y1="35" x2="86" y2="35"/><line x1="76" y1="50" x2="86" y2="50"/><line x1="76" y1="65" x2="86" y2="65"/></g></svg></div>
+    <div><h1>STRATOS AI</h1></div>
+  </div>
+  <div class="sub">Live Platform Metrics · Investor View</div>
+  <div class="live"><span class="dot"></span> Live · auto-refresh 30s</div>
+
+  <div class="section">Engagement</div>
+  <div class="grid" id="engagement"><div class="loading">Loading metrics…</div></div>
+
+  <div class="section">Community (Airdrop)</div>
+  <div class="grid" id="community"><div class="loading">Loading…</div></div>
+
+  <div class="section">AI Engine</div>
+  <div class="grid" id="ai"><div class="loading">Loading…</div></div>
+
+  <div class="foot">Data updates in real time from the STRATOS AI platform · stratosai.bet</div>
+</div>
+
+<script>
+// --- stratosai project (analytics + predictions) ---
+var SB_URL='https://eodmgkcjytkhilxfyvrr.supabase.co';
+var SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvZG1na2NqeXRraGlseGZ5dnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MTE3MzYsImV4cCI6MjA5NzE4NzczNn0.-nNJ1LLZOatrkaanyfd07ZTJ7IYiBXUA1jiUfaeXs3I';
+var H={'apikey':SB_ANON,'Authorization':'Bearer '+SB_ANON};
+
+// --- bot project (members + points) ---
+// (config)
+var BOT_URL='https://vnzyfxgwtgmglfgsqmst.supabase.co';
+var BOT_ANON='PASTE_BOT_ANON_KEY_HERE';
+var BH={'apikey':BOT_ANON,'Authorization':'Bearer '+BOT_ANON};
+
+function card(v,l,sub,color){
+  return '<div class="stat"><div class="stat-v" style="color:'+(color||'#f1f5f9')+'">'+v+'</div><div class="stat-l">'+l+'</div>'+(sub?'<div class="stat-sub">'+sub+'</div>':'')+'</div>';
+}
+function fmt(n){n=n||0;return n>=1000?(n/1000).toFixed(1)+'k':n;}
+
+async function load(){
+  // 1. Analytics summary
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/analytics_summary?select=*',{headers:H});
+    var d=(await r.json())[0]||{};
+    document.getElementById('engagement').innerHTML=
+      card(fmt(d.unique_visitors),'Unique Visitors','All time','#00c8ff')+
+      card(fmt(d.visitors_24h),'Visitors (24h)','Last 24 hours','#00e87a')+
+      card(fmt(d.wallets_connected),'Wallets Connected','On-chain users','#a78bfa')+
+      card(fmt(d.total_bets),'Bets Placed','Demo + live','#f59e0b');
+    document.getElementById('ai').innerHTML=
+      card(fmt(d.prediction_views),'AI Predictions Viewed','User engagement','#00c8ff')+
+      card(fmt(d.total_visits),'Total Page Views','All sessions','#94a3b8')+
+      card(fmt(d.events_24h),'Events (24h)','Platform activity','#00e87a');
+  }catch(e){
+    document.getElementById('engagement').innerHTML='<div class="err">Run supabase_infrastructure.sql first to enable analytics.</div>';
+  }
+
+  // 2. Community - from bot project
+  try{
+    var r2=await fetch(BOT_URL+'/rest/v1/users?select=telegram_id',{headers:Object.assign({'Prefer':'count=exact','Range':'0-0'},BH)});
+    var total=r2.headers.get('content-range');
+    var members=total?total.split('/')[1]:'—';
+    var r3=await fetch(BOT_URL+'/rest/v1/users?select=points.sum()',{headers:BH});
+    var pts=0;try{pts=(await r3.json())[0].sum||0;}catch(e){}
+    document.getElementById('community').innerHTML=
+      card(fmt(parseInt(members)||0),'Airdrop Members','Telegram bot','#00e87a')+
+      card(fmt(pts),'Points Distributed','$STRAT rewards','#a78bfa');
+  }catch(e){
+    document.getElementById('community').innerHTML='<div class="err">Community data unavailable.</div>';
+  }
+}
+load();
+setInterval(load,30000);
+</script>
+</body>
+</html>
