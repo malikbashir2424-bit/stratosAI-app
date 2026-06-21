@@ -758,17 +758,23 @@ async function toggleMatch(id){
   row.classList.add('expanded');
   var m=S.matches[id];if(!m)return;
   if(S.aiCache[id]){renderDetail(id,m,S.aiCache[id]);return;}
-  try{var ai=await fetchAI(m);S.aiCache[id]=ai;renderDetail(id,m,ai);}
+  try{var ai=await fetchAI(m);S.aiCache[id]=ai;renderDetail(id,m,ai);track('prediction_view');}
   catch(e){renderDetail(id,m,null);}
 }
 
 async function fetchAI(m){
   var h=gt(m.homeId),a=gt(m.awayId),o=calcOdds(m);
-  var prompt='You are STRATOS AI, a professional football prediction engine.\n\nMatch: '+m.home+' vs '+m.away+' ('+m.league+')\n'+m.home+': avg '+h.gs+' goals scored, '+h.gc+' conceded, form '+h.form+', xG '+o.hxg.toFixed(2)+'\n'+m.away+': avg '+a.gs+' goals scored, '+a.gc+' conceded, form '+a.form+', xG '+o.axg.toFixed(2)+'\n\nRespond ONLY as valid JSON, no markdown: {"verdict":"[Team] Win OR Draw","confidence":"High/Medium/Low","analysis":"2-3 professional sentences","tip":"One sharp tactical observation"}';
-  var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:320,messages:[{role:'user',content:prompt}]})});
-  var d=await r.json();
-  var txt=d.content.map(function(c){return c.text||'';}).join('').trim().replace(/```json|```/g,'').trim();
-  return JSON.parse(txt);
+  var r=await fetch('/.netlify/functions/ai-analysis',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      home:m.home, away:m.away, league:m.league,
+      hs:h.gs, hc:h.gc, hForm:h.form, hxg:+o.hxg.toFixed(2),
+      as:a.gs, ac:a.gc, aForm:a.form, axg:+o.axg.toFixed(2)
+    })
+  });
+  if(!r.ok) throw new Error('AI unavailable');
+  return await r.json();
 }
 
 function renderDetail(id,m,ai){
@@ -871,6 +877,7 @@ function placeSlip(){
 
   saveSlip(slip);
   sendPlatformEvent('place_bet');
+  track('bet_placed',{stake:SLIP_STAKE,selections:slip.selections.length});
 
   var picks=S.betSlip.map(function(b){return b.label+' @ '+fmtOdds(b.odds);}).join(' + ');
   document.getElementById('toastBody').innerHTML=
@@ -1011,7 +1018,7 @@ window.addEventListener('scroll',function(){document.getElementById('hamBtn').cl
 var W={connected:false,address:null};
 function openWallet(){if(W.connected){document.getElementById('wNotConnected').style.display='none';document.getElementById('wConnected').style.display='';}else{document.getElementById('wNotConnected').style.display='';document.getElementById('wConnected').style.display='none';}document.getElementById('walletOverlay').classList.add('show');}
 function closeWallet(){document.getElementById('walletOverlay').classList.remove('show');}
-function setConnected(address){W.connected=true;W.address=address;var short=address.slice(0,6)+'...'+address.slice(-4);document.getElementById('walletBtn').classList.add('connected');document.getElementById('walletBtnText').textContent=short;document.getElementById('wAddress').textContent=address;document.getElementById('wNotConnected').style.display='none';document.getElementById('wConnected').style.display='';}
+function setConnected(address){W.connected=true;W.address=address;track('wallet_connect');sendPlatformEvent('connect_wallet');var short=address.slice(0,6)+'...'+address.slice(-4);document.getElementById('walletBtn').classList.add('connected');document.getElementById('walletBtnText').textContent=short;document.getElementById('wAddress').textContent=address;document.getElementById('wNotConnected').style.display='none';document.getElementById('wConnected').style.display='';}
 async function connectMetaMask(){
   if(typeof window.ethereum==='undefined'||!window.ethereum.isMetaMask){window.open('https://metamask.io/download/','_blank');return;}
   try{
@@ -1434,13 +1441,12 @@ buildTicker();
 })();
 
 /* ══ WEBHOOK — Platform Events ══ */
-var WEBHOOK_URL = 'https://stratosai-bot-production.up.railway.app/webhook';
-
+// Calls a same-origin Netlify function that proxies to the bot with a hidden secret.
+// The bot URL and secret are never exposed in the browser.
 function sendPlatformEvent(eventType){
-  // Get telegramId from localStorage (set when user connects via Telegram)
   var telegramId = localStorage.getItem('stratos_telegram_id');
-  if(!telegramId) return; // Only send if user came from Telegram bot
-  fetch(WEBHOOK_URL, {
+  if(!telegramId) return; // Only fire for users who arrived from the Telegram bot
+  fetch('/.netlify/functions/award-points', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ telegramId: parseInt(telegramId), eventType: eventType })
@@ -1455,6 +1461,21 @@ function sendPlatformEvent(eventType){
     sendPlatformEvent('visit_sportsbook');
   }
 })();
+
+/* ══ ANALYTICS TRACKER (investor metrics) ══ */
+var SB_URL='https://eodmgkcjytkhilxfyvrr.supabase.co';
+var SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvZG1na2NqeXRraGlseGZ5dnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MTE3MzYsImV4cCI6MjA5NzE4NzczNn0.-nNJ1LLZOatrkaanyfd07ZTJ7IYiBXUA1jiUfaeXs3I';
+function sid(){var s=localStorage.getItem('stratos_sid');if(!s){s='s_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);localStorage.setItem('stratos_sid',s);}return s;}
+function track(eventType,extra){
+  try{
+    var body={event_type:eventType,session_id:sid()};
+    if(W&&W.address)body.wallet=W.address;
+    if(extra)body.meta=extra;
+    fetch(SB_URL+'/rest/v1/analytics_events',{method:'POST',headers:{'apikey':SB_ANON,'Authorization':'Bearer '+SB_ANON,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(body)}).catch(function(){});
+  }catch(e){}
+}
+// Fire visit once per session
+(function(){if(!sessionStorage.getItem('stratos_visit_tracked')){sessionStorage.setItem('stratos_visit_tracked','1');track('visit');}})();
 
 /* INIT */
 loadMatches().then(function(){startLivePolling();});
