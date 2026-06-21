@@ -30,7 +30,7 @@ h1{font-size:22px;font-weight:800;letter-spacing:1px;}
 <body>
 <div class="wrap">
   <div class="head">
-    <div class="logo"><svg width="22" height="22" viewBox="0 0 100 100" fill="none" stroke="#0b0d13" stroke-width="7"><rect x="24" y="24" width="52" height="52" rx="6"/><rect x="40" y="40" width="20" height="20" rx="2" fill="#0b0d13"/><g stroke-linecap="square"><line x1="35" y1="14" x2="35" y2="24"/><line x1="50" y1="14" x2="50" y2="24"/><line x1="65" y1="14" x2="65" y2="24"/><line x1="35" y1="76" x2="35" y2="86"/><line x1="50" y1="76" x2="50" y2="86"/><line x1="65" y1="76" x2="65" y2="86"/><line x1="14" y1="35" x2="24" y2="35"/><line x1="14" y1="50" x2="24" y2="50"/><line x1="14" y1="65" x2="24" y2="65"/><line x1="76" y1="35" x2="86" y2="35"/><line x1="76" y1="50" x2="86" y2="50"/><line x1="76" y1="65" x2="86" y2="65"/></g></svg></div>
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0b0d13" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg></div>
     <div><h1>STRATOS AI</h1></div>
   </div>
   <div class="sub">Live Platform Metrics · Investor View</div>
@@ -49,15 +49,14 @@ h1{font-size:22px;font-weight:800;letter-spacing:1px;}
 </div>
 
 <script>
-// --- stratosai project (analytics + predictions) ---
+// ── Single Supabase project holds ALL data: analytics, predictions, users (airdrop) ──
 var SB_URL='https://eodmgkcjytkhilxfyvrr.supabase.co';
 var SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvZG1na2NqeXRraGlseGZ5dnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MTE3MzYsImV4cCI6MjA5NzE4NzczNn0.-nNJ1LLZOatrkaanyfd07ZTJ7IYiBXUA1jiUfaeXs3I';
 var H={'apikey':SB_ANON,'Authorization':'Bearer '+SB_ANON};
 
-// --- bot project (members + points) ---
-// (config)
-var BOT_URL='https://vnzyfxgwtgmglfgsqmst.supabase.co';
-var BOT_ANON='PASTE_BOT_ANON_KEY_HERE';
+// Community (members + points) lives in the SAME project — reuse the same URL + anon key.
+var BOT_URL=SB_URL;
+var BOT_ANON=SB_ANON;
 var BH={'apikey':BOT_ANON,'Authorization':'Bearer '+BOT_ANON};
 
 function card(v,l,sub,color){
@@ -80,10 +79,10 @@ async function load(){
       card(fmt(d.total_visits),'Total Page Views','All sessions','#94a3b8')+
       card(fmt(d.events_24h),'Events (24h)','Platform activity','#00e87a');
   }catch(e){
-    document.getElementById('engagement').innerHTML='<div class="err">Run supabase_infrastructure.sql first to enable analytics.</div>';
+    document.getElementById('engagement').innerHTML='<div class="err">Run SQL_1_stratosai.sql first to enable analytics.</div>';
   }
 
-  // 2. Community - from bot project
+  // 2. Community — members + points (same project)
   try{
     var r2=await fetch(BOT_URL+'/rest/v1/users?select=telegram_id',{headers:Object.assign({'Prefer':'count=exact','Range':'0-0'},BH)});
     var total=r2.headers.get('content-range');
