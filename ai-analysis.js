@@ -99,8 +99,7 @@ exports.handler = async function (event) {
       .map((c) => c.text || "")
       .join("")
       .trim()
-      .replace(/json/g, "")
-      .replace(/`/g, "")
+      .replace(/```json|```/g, "")
       .trim();
     const parsed = JSON.parse(txt);
     await cacheWrite(cacheKey, parsed); // save for everyone
