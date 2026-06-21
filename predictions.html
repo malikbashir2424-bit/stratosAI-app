@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>STRATOS AI | Sportsbook</title>
+<meta name="theme-color" content="#000000"/>
+<!-- predictions.html now redirects to the main sportsbook (index.html).
+     index.html is the canonical, fully-featured, secure version. -->
+<script>
+  (function(){
+    var qs = window.location.search || '';   // keep ?tgid= and any other params
+    window.location.replace('index.html' + qs);
+  })();
+</script>
+<meta http-equiv="refresh" content="0; url=index.html"/>
+<style>
+  html,body{margin:0;height:100%;background:#0a0c0f;color:#e8feff;
+    font-family:'Inter',system-ui,-apple-system,sans-serif;}
+  .wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;}
+  .spinner{width:26px;height:26px;border:3px solid rgba(0,229,255,.15);border-top-color:#00E5FF;border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  a{color:#00E5FF;text-decoration:none;font-weight:700;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="spinner"></div>
+    <div style="font-size:14px;color:#6fa9b2">Opening the STRATOS AI sportsbook…</div>
+    <a href="index.html">Continue →</a>
+  </div>
+</body>
+</html>
