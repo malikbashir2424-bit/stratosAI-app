@@ -1,23 +1,76 @@
 // netlify/functions/check-results.js
-exports.handler = async function(event) {
-  const API_KEY = process.env.API_FOOTBALL_KEY;
-  const BASE = "https://v3.football.api-sports.io";
+// Per-fixture live result with SHARED server-side cache.
+// Each fixture is fetched from API-Football at most once per TTL window,
+// no matter how many users are polling it. Graceful degrade on failure.
+
+const SUPA_URL = process.env.DB_URL || process.env.SUPABASE_URL;
+const SUPA_KEY = process.env.DB_SERVICE_KEY || process.env.SUPABASE_SERVICE_KEY;
+const TTL_SECONDS = 300; // 5 min
+
+async function cacheRead(key) {
+  if (!SUPA_URL || !SUPA_KEY) return null;
+  try {
+    const r = await fetch(
+      `${SUPA_URL}/rest/v1/api_cache?cache_key=eq.${encodeURIComponent(key)}&select=payload,expires_at`,
+      { headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` } }
+    );
+    const rows = await r.json();
+    if (Array.isArray(rows) && rows.length) return rows[0];
+  } catch (e) {}
+  return null;
+}
+
+async function cacheWrite(key, payload, ttl) {
+  if (!SUPA_URL || !SUPA_KEY) return;
+  const expires_at = new Date(Date.now() + ttl * 1000).toISOString();
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/api_cache?on_conflict=cache_key`, {
+      method: "POST",
+      headers: {
+        apikey: SUPA_KEY,
+        Authorization: `Bearer ${SUPA_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({ cache_key: key, payload, updated_at: new Date().toISOString(), expires_at }),
+    });
+  } catch (e) {}
+}
+
+exports.handler = async function (event) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Content-Type": "application/json",
-    "Cache-Control": "public, max-age=300",
+    "Cache-Control": "public, max-age=120, s-maxage=300",
   };
-  if (!API_KEY) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: "Missing API key." }) };
-  }
+
   const params = event.queryStringParameters || {};
-  const fixtureId = params.fixtureId;
-  if (!fixtureId) {
+  const fixtureId = parseInt(params.fixtureId);
+  if (!fixtureId || fixtureId <= 0) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing fixtureId." }) };
   }
+
+  const key = `results:${fixtureId}`;
+  const cached = await cacheRead(key);
+  const fresh = cached && new Date(cached.expires_at).getTime() > Date.now();
+
+  // If a finished result is cached, it never changes — serve forever.
+  if (cached && cached.payload && cached.payload.finished) {
+    return { statusCode: 200, headers, body: JSON.stringify({ ...cached.payload, source: "cache" }) };
+  }
+  if (fresh) {
+    return { statusCode: 200, headers, body: JSON.stringify({ ...cached.payload, source: "cache" }) };
+  }
+
+  const API_KEY = process.env.API_FOOTBALL_KEY;
+  if (!API_KEY) {
+    if (cached) return { statusCode: 200, headers, body: JSON.stringify({ ...cached.payload, source: "stale" }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: "Missing API key." }) };
+  }
+
   try {
-    const res = await fetch(`${BASE}/fixtures?id=${fixtureId}`, {
-      headers: { "x-apisports-key": API_KEY }
+    const res = await fetch(`https://v3.football.api-sports.io/fixtures?id=${fixtureId}`, {
+      headers: { "x-apisports-key": API_KEY },
     });
     if (!res.ok) throw new Error("API failed: " + res.status);
     const data = await res.json();
@@ -34,21 +87,24 @@ exports.handler = async function(event) {
       else if (homeGoals === awayGoals) result = "X";
       else result = "2";
     }
-    return {
-      statusCode: 200,
-      headers: {...headers, "Cache-Control": "public, max-age=300"},
-      body: JSON.stringify({
-        fixtureId: parseInt(fixtureId),
-        status,
-        finished: result !== null,
-        result,
-        homeGoals,
-        awayGoals,
-        home: match.teams.home.name,
-        away: match.teams.away.name,
-      })
+    const payload = {
+      fixtureId,
+      status,
+      finished: result !== null,
+      result,
+      homeGoals,
+      awayGoals,
+      minute: match.fixture.status.elapsed,
+      home: match.teams.home.name,
+      away: match.teams.away.name,
     };
+    // Finished results cached for 24h, live for 5 min
+    await cacheWrite(key, payload, payload.finished ? 86400 : TTL_SECONDS);
+    return { statusCode: 200, headers, body: JSON.stringify({ ...payload, source: "live" }) };
   } catch (err) {
+    if (cached && cached.payload) {
+      return { statusCode: 200, headers, body: JSON.stringify({ ...cached.payload, source: "stale" }) };
+    }
     return { statusCode: 502, headers, body: JSON.stringify({ error: String(err.message) }) };
   }
 };
