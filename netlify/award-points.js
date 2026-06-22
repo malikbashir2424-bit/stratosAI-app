@@ -1,7 +1,3 @@
-// netlify/functions/award-points.js
-// Secure proxy between the site and the Telegram bot webhook.
-// The shared secret lives ONLY in Netlify env vars — never exposed to the browser.
-
 exports.handler = async function (event) {
   const headers = {
     "Access-Control-Allow-Origin": "https://stratosai.bet",
@@ -17,7 +13,7 @@ exports.handler = async function (event) {
     return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
-  const BOT_WEBHOOK = process.env.BOT_WEBHOOK_URL; // e.g. https://stratosai-bot-production.up.railway.app/webhook
+  const BOT_WEBHOOK = process.env.BOT_WEBHOOK_URL;
   const SECRET = process.env.WEBHOOK_SECRET;
 
   if (!BOT_WEBHOOK || !SECRET) {
@@ -33,7 +29,7 @@ exports.handler = async function (event) {
 
   const telegramId = parseInt(payload.telegramId);
   const eventType = payload.eventType;
-  const allowed = ["visit_sportsbook", "connect_wallet", "place_bet", "winning_bet"];
+  const allowed = ["visit_sportsbook", "connect_wallet", "place_bet"];
 
   if (!telegramId || telegramId <= 0 || !allowed.includes(eventType)) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Invalid request" }) };
