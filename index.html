@@ -619,7 +619,7 @@ async function settleBets(){
       slips[slipIdx].settled=true; slips[slipIdx].won=false; upd=true;
     }else if(allSettled){
       slips[slipIdx].settled=true; slips[slipIdx].won=true; upd=true;
-      sendPlatformEvent('winning_bet');
+      
     }
   }
   if(upd){saveSlips(slips);updateUserStats();}
@@ -1559,11 +1559,24 @@ function closeLeaderboard(){document.getElementById('lbOverlay').classList.remov
 async function loadLeaderboard(){
   var body=document.getElementById('lbBody');
   try{
-    var r=await fetch('/.netlify/functions/leaderboard');
-    var d=await r.json();
-    var lb=d.leaderboard||[];
-    if(!lb.length){body.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3)">No rankings yet. Be the first!</div>';return;}
-    var rows=lb.map(function(u){
+    var SB='https://eodmgkcjytkhilxfyvrr.supabase.co';
+    var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvZG1na2NqeXRraGlseGZ5dnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MTE3MzYsImV4cCI6MjA5NzE4NzczNn0.-nNJ1LLZOatrkaanyfd07ZTJ7IYiBXUA1jiUfaeXs3I';
+    var res=await fetch(SB+'/rest/v1/users?select=username,first_name,points,streak_count,wallet_address&order=points.desc&limit=50',{
+      headers:{'apikey':KEY,'Authorization':'Bearer '+KEY}
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    var rows=await res.json();
+    if(!rows || !rows.length){
+      body.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3)">No rankings yet. Be the first!</div>';
+      return;
+    }
+    var lb=rows.map(function(u,i){
+      var name=u.username?'@'+u.username:(u.first_name||'Anonymous');
+      var w=u.wallet_address;
+      var shortWallet=w?w.slice(0,6)+'...'+w.slice(-4):null;
+      return {rank:i+1,name:name,points:u.points||0,streak:u.streak_count||0,wallet:shortWallet};
+    });
+    var rowsHtml=lb.map(function(u){
       var medal=u.rank===1?'🥇':u.rank===2?'🥈':u.rank===3?'🥉':'<span style="color:var(--t3);font-weight:700">'+u.rank+'</span>';
       var streakBadge=u.streak>0?'<span style="font-size:10px;color:var(--g)">🔥'+u.streak+'</span>':'';
       return '<div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line)">'+
@@ -1575,7 +1588,7 @@ async function loadLeaderboard(){
     }).join('');
     body.innerHTML=
       '<div style="font-size:11px;color:var(--t3);text-align:center;padding:8px 0 14px">Live from STRATOS AI airdrop · Top 50</div>'+
-      '<div style="background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden">'+rows+'</div>';
+      '<div style="background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden">'+rowsHtml+'</div>';
   }catch(e){
     body.innerHTML='<div style="text-align:center;padding:40px;color:var(--o)">Could not load leaderboard.</div>';
   }
