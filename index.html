@@ -713,6 +713,20 @@ function startLivePolling(){
 }
 
 function renderMatches(matches){
+  // Hide finished matches from the Upcoming list (kept in S.matches for bet settlement).
+  var ftSet={'FT':1,'AET':1,'PEN':1};
+  var liveSet={'1H':1,'2H':1,'ET':1,'HT':1,'BT':1,'LIVE':1};
+  matches=(matches||[]).filter(function(m){
+    var ld=LIVE_DATA[m.id];
+    var st=(ld&&ld.status)?ld.status:m.status;
+    return !ftSet[st]; // exclude finished
+  }).sort(function(a,b){
+    var la=LIVE_DATA[a.id], lb=LIVE_DATA[b.id];
+    var sa=(la&&la.status)?la.status:a.status, sb=(lb&&lb.status)?lb.status:b.status;
+    var ra=liveSet[sa]?0:1, rb=liveSet[sb]?0:1; // live first
+    if(ra!==rb)return ra-rb;
+    return new Date(a.kickoff)-new Date(b.kickoff);
+  });
   if(!matches.length){document.getElementById('matchesList').innerHTML='<div style="padding:28px;text-align:center;color:var(--t3);font-size:12px;">No upcoming matches. Check back soon.</div>';return;}
   document.getElementById('matchesList').innerHTML=matches.map(function(m){
     var liveD = LIVE_DATA[m.id];
