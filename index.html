@@ -389,8 +389,8 @@ input{font-family:inherit;}
 .tick-separator{color:var(--t3);margin:0 2px;}
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@web3modal/standalone@2.4.1/dist/index.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@walletconnect/sign-client@2.11.0/dist/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/modal@2.7.0/dist/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.21.8/dist/index.umd.js"></script>
 </head>
 <body>
 
@@ -1022,37 +1022,74 @@ var W={connected:false,address:null};
 function openWallet(){if(W.connected){document.getElementById('wNotConnected').style.display='none';document.getElementById('wConnected').style.display='';}else{document.getElementById('wNotConnected').style.display='';document.getElementById('wConnected').style.display='none';}document.getElementById('walletOverlay').classList.add('show');}
 function closeWallet(){document.getElementById('walletOverlay').classList.remove('show');}
 function setConnected(address){W.connected=true;W.address=address;track('wallet_connect');sendPlatformEvent('connect_wallet');var short=address.slice(0,6)+'...'+address.slice(-4);document.getElementById('walletBtn').classList.add('connected');document.getElementById('walletBtnText').textContent=short;document.getElementById('wAddress').textContent=address;document.getElementById('wNotConnected').style.display='none';document.getElementById('wConnected').style.display='';}
-async function connectMetaMask(){
-  if(typeof window.ethereum==='undefined'||!window.ethereum.isMetaMask){window.open('https://metamask.io/download/','_blank');return;}
+var WC_PROJECT_ID='2179dfdce19850a9e8dfee5bcb792046';
+var wcProvider=null;
+
+// Detect if we are inside a wallet's in-app browser (injected provider present)
+function hasInjected(){return typeof window.ethereum!=='undefined'||typeof window.okxwallet!=='undefined';}
+function getInjected(){return window.ethereum||window.okxwallet||null;}
+
+// Switch/add BNB Chain (0x38) on any EIP-1193 provider
+async function ensureBNBChain(p){
   try{
-    var accounts=await window.ethereum.request({method:'eth_requestAccounts'});
-    if(accounts.length){
-      try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x38'}]});}catch(se){if(se.code===4902){await window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:'0x38',chainName:'BNB Smart Chain',nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18},rpcUrls:['https://bsc-dataseed.binance.org/'],blockExplorerUrls:['https://bscscan.com/']}]});}}
+    await p.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x38'}]});
+  }catch(se){
+    if(se&&se.code===4902){
+      await p.request({method:'wallet_addEthereumChain',params:[{chainId:'0x38',chainName:'BNB Smart Chain',nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18},rpcUrls:['https://bsc-dataseed.binance.org/'],blockExplorerUrls:['https://bscscan.com/']}]});
+    }
+  }
+}
+
+// Connect using the injected wallet (when inside a wallet in-app browser)
+async function connectInjected(){
+  var p=getInjected();
+  if(!p){window.open('https://metamask.app.link/dapp/stratosai.bet','_blank');return;}
+  try{
+    var accounts=await p.request({method:'eth_requestAccounts'});
+    if(accounts&&accounts.length){
+      await ensureBNBChain(p);
       setConnected(accounts[0]);closeWallet();
     }
-  }catch(e){if(e.code!==4001)console.log(e);}
+  }catch(e){if(e&&e.code!==4001)console.log(e);}
 }
-async function connectWalletConnect(){
-  try{
-    // Show QR modal using Web3Modal standalone
-    var modal = window.Web3Modal ? new window.Web3Modal.Web3Modal({
-      projectId: '2179dfdce19850a9e8dfee5bcb792046',
-      standaloneChains: ['eip155:56'], // BNB Chain
-    }) : null;
 
-    if(modal){
-      modal.openModal();
-      modal.subscribeModal(function(state){
-        if(!state.open){
-          // User closed modal
-          return;
+// MetaMask button: use injected if present, else deep-link to MetaMask app (mobile)
+async function connectMetaMask(){
+  if(hasInjected()){await connectInjected();return;}
+  // Normal mobile browser without injected provider -> open in MetaMask app
+  window.location.href='https://metamask.app.link/dapp/stratosai.bet';
+}
+
+// WalletConnect: works from a normal browser, keeps user in their browser
+async function connectWalletConnect(){
+  // If inside a wallet browser, the injected provider is faster and cleaner
+  if(hasInjected()){await connectInjected();return;}
+  var EP=window['@walletconnect/ethereum-provider'];
+  if(!EP||!EP.EthereumProvider){showWCDeepLinks();return;}
+  try{
+    if(!wcProvider){
+      wcProvider=await EP.EthereumProvider.init({
+        projectId:WC_PROJECT_ID,
+        optionalChains:[56],
+        showQrModal:true,
+        rpcMap:{56:'https://bsc-dataseed.binance.org/'},
+        metadata:{
+          name:'STRATOS AI',
+          description:'STRATOS AI Sportsbook',
+          url:'https://stratosai.bet',
+          icons:['https://stratosai.bet/favicon.png']
         }
       });
-    } else {
-      // Fallback — show deep link options for mobile
-      showWCDeepLinks();
+      wcProvider.on('accountsChanged',function(accs){if(accs&&accs.length)setConnected(accs[0]);else disconnectWallet();});
     }
-  } catch(e){
+    await wcProvider.enable();
+    var accounts=wcProvider.accounts||[];
+    if(accounts.length){
+      try{await ensureBNBChain(wcProvider);}catch(ce){}
+      setConnected(accounts[0]);closeWallet();
+    }
+  }catch(e){
+    if(e&&e.code!==4001)console.log('WC error:',e&&e.message);
     showWCDeepLinks();
   }
 }
@@ -1090,7 +1127,7 @@ function showNotConnected(){
   // Re-render wallet options
   openWallet();
 }
-function disconnectWallet(){W.connected=false;W.address=null;document.getElementById('walletBtn').classList.remove('connected');document.getElementById('walletBtnText').textContent='Connect Wallet';closeWallet();}
+function disconnectWallet(){W.connected=false;W.address=null;try{if(wcProvider&&wcProvider.disconnect)wcProvider.disconnect();}catch(e){}document.getElementById('walletBtn').classList.remove('connected');document.getElementById('walletBtnText').textContent='Connect Wallet';closeWallet();}
 if(typeof window.ethereum!=='undefined'){window.ethereum.request({method:'eth_accounts'}).then(function(accounts){if(accounts.length)setConnected(accounts[0]);}).catch(function(){});window.ethereum.on('accountsChanged',function(accounts){if(accounts.length)setConnected(accounts[0]);else disconnectWallet();});}
 
 
@@ -1492,6 +1529,26 @@ function track(eventType,extra){
 (function(){if(!sessionStorage.getItem('stratos_visit_tracked')){sessionStorage.setItem('stratos_visit_tracked','1');track('visit');}})();
 
 /* ══ DAILY REWARD ══ */
+// Detect wallet in-app browsers (they block opening external apps like Telegram)
+function isInWalletBrowser(){
+  var ua=navigator.userAgent||'';
+  if(/MetaMask|Trust|TrustWallet|OKApp|OKEx|imToken|TokenPocket|Coinbase/i.test(ua))return true;
+  // Injected provider + mobile is a strong signal we're inside a wallet browser
+  var mobile=/iPhone|iPad|iPod|Android/i.test(ua);
+  if(mobile&&(typeof window.ethereum!=='undefined'||typeof window.okxwallet!=='undefined'))return true;
+  return false;
+}
+// Open Telegram safely. Inside a wallet browser, opening is blocked, so show a copy fallback.
+function openTelegram(url,ev){
+  if(isInWalletBrowser()){
+    if(ev&&ev.preventDefault)ev.preventDefault();
+    var ok=false;
+    try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url);ok=true;}}catch(e){}
+    alert((ok?'Link copied! ':'')+'Please open this link in Safari or Chrome (not inside the wallet browser):\n\n'+url);
+    return false;
+  }
+  return true; // normal browser: let the link open normally
+}
 function openDaily(){document.getElementById('dailyOverlay').classList.add('show');document.body.style.overflow='hidden';loadDaily();}
 function closeDaily(){document.getElementById('dailyOverlay').classList.remove('show');document.body.style.overflow='';}
 
@@ -1503,7 +1560,7 @@ async function loadDaily(){
       '<div style="font-size:40px;margin-bottom:12px">🔥</div>'+
       '<div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:8px">Daily Rewards</div>'+
       '<div style="font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:20px">Join via our Telegram bot to earn daily $STRAT points, build streaks, and unlock the +2000 weekly bonus.</div>'+
-      '<a href="https://t.me/StratosAidrop_Bot" target="_blank" style="display:inline-block;padding:12px 24px;border-radius:10px;background:var(--c);color:#000;font-weight:800;font-size:14px;text-decoration:none">Open Telegram Bot →</a>'+
+      '<a href="https://t.me/StratosAidrop_Bot" target="_blank" onclick="return openTelegram(\'https://t.me/StratosAidrop_Bot\',event)" style="display:inline-block;padding:12px 24px;border-radius:10px;background:var(--c);color:#000;font-weight:800;font-size:14px;text-decoration:none">Open Telegram Bot →</a>'+
       '</div>';
     return;
   }
