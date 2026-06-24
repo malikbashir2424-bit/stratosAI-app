@@ -110,7 +110,7 @@ input{font-family:inherit;}
 .match-chevron{color:var(--t3);flex-shrink:0;transition:transform .2s;}
 .match-row.expanded .match-chevron{transform:rotate(180deg);}
 .odds-row{display:flex;gap:3px;padding:0 12px 8px;}
-.odd{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 3px;border-radius:6px;border:1px solid var(--line2);background:var(--bg2);cursor:pointer;min-height:46px;-webkit-tap-highlight-color:rgba(0,200,255,.1);touch-action:manipulation;transition:border-color .1s,background .1s;}
+.odd{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 3px;border-radius:6px;border:1px solid var(--line2);background:var(--bg2);cursor:pointer;min-height:46px;-webkit-tap-highlight-color:rgba(0,200,255,.1);touch-action:manipulation;transition:border-color .1s,background .1s;}
 .odd:hover{border-color:rgba(0,200,255,.3);background:rgba(0,200,255,.06);}
 .odd.sel{border-color:var(--c);background:rgba(0,200,255,.12);box-shadow:0 0 0 1px rgba(0,200,255,.25);}
 .odd-lbl{font-size:8px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
@@ -175,6 +175,14 @@ input{font-family:inherit;}
 .bs-header{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--line);}
 .bs-title{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--t1);text-transform:uppercase;flex:1;}
 .bs-badge{background:var(--c);color:#000;border-radius:999px;font-size:9px;font-weight:900;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;}
+/* Floating mobile bet slip — shopping-cart style */
+@keyframes bsBounce{0%{transform:scale(1)}30%{transform:scale(1.45)}60%{transform:scale(.9)}100%{transform:scale(1)}}
+@keyframes bsSlideUp{from{transform:translateY(120%)}to{transform:translateY(0)}}
+.mob-bs.has-items .mob-bs-bar{animation:bsSlideUp .35s cubic-bezier(.16,1,.3,1);}
+.mob-bs-bar .bs-badge{background:#f43f5e;color:#fff;min-width:20px;height:20px;font-size:10px;box-shadow:0 0 0 2px rgba(244,63,94,.25);transition:transform .2s;}
+.mob-bs-bar.bump .bs-badge{animation:bsBounce .45s ease;}
+.mob-bs:not(.has-items):not(.open) .mob-bs-bar{opacity:.55;}
+.mob-bs.has-items:not(.open) .mob-bs-bar{border-color:rgba(0,200,255,.45);box-shadow:0 -4px 24px rgba(0,200,255,.18),0 -2px 12px rgba(0,0,0,.5);}
 .bs-tabs{display:flex;border-bottom:1px solid var(--line);}
 .bs-tab{flex:1;padding:8px;font-size:10px;font-weight:700;color:var(--t3);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;-webkit-tap-highlight-color:transparent;}
 .bs-tab.active{color:var(--c);border-bottom-color:var(--c);}
@@ -276,6 +284,10 @@ input{font-family:inherit;}
   .sc{padding:7px 9px;}
   .ai-box{margin:0 10px 10px;}
   .user-stats{grid-template-columns:repeat(2,1fr);}
+  .col-left{max-width:100vw;overflow-x:hidden;}
+  .match-row{max-width:100%;}
+  .match-teams-col{min-width:0;overflow:hidden;}
+  .live-bets-strip,.lf-wrap,.tb-nav{max-width:100vw;}
 }
 @media(max-width:380px){.team-name{font-size:10px;}.odd-val{font-size:11px;}}
 
@@ -860,7 +872,18 @@ function slipHTML(sId,pId){
 
 function renderSlip(){updateCounts();document.getElementById('slipContent').innerHTML=slipHTML('stakeD','potD');}
 function renderMobSlip(){updateCounts();document.getElementById('mobSlipContent').innerHTML=slipHTML('stakeM','potM');}
-function updateCounts(){var n=S.betSlip.length;document.getElementById('bsCountD').textContent=n;document.getElementById('bsCountM').textContent=n;}
+function updateCounts(){var n=S.betSlip.length;document.getElementById('bsCountD').textContent=n;document.getElementById('bsCountM').textContent=n;
+  var mb=document.getElementById('mobBs');
+  if(mb){
+    var bar=mb.querySelector('.mob-bs-bar');
+    if(n>0){
+      mb.classList.add('has-items');
+      if(bar){bar.classList.remove('bump');void bar.offsetWidth;bar.classList.add('bump');}
+    }else{
+      mb.classList.remove('has-items');
+    }
+  }
+}
 function updatePot(sId,pId){var stake=parseFloat(document.getElementById(sId).value)||0;var tot=S.betSlip.reduce(function(a,b){return a*b.odds;},1);var el=document.getElementById(pId);if(el)el.textContent=(stake*tot).toFixed(2)+' $STRAT';}
 
 function placeSlip(){
@@ -1496,6 +1519,20 @@ buildTicker();
 // The bot URL and secret are never exposed in the browser.
 function sendPlatformEvent(eventType){
   var telegramId = localStorage.getItem('stratos_telegram_id');
+  // ===== TEMP DIAGNOSTIC (remove after debugging) =====
+  if(eventType==='connect_wallet'){
+    if(!telegramId){
+      alert('DIAG: No tgid in storage. Open the site FROM the bot link (?tgid=...). Event NOT sent.');
+      return;
+    }
+    fetch('/.netlify/functions/award-points', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ telegramId: parseInt(telegramId), eventType: eventType })
+    }).then(function(r){ return r.text().then(function(t){ alert('DIAG connect_wallet → HTTP '+r.status+'\n'+t); }); })
+      .catch(function(e){ alert('DIAG connect_wallet → FETCH FAILED: '+e.message); });
+    return;
+  }
+  // ===== END DIAGNOSTIC =====
   if(!telegramId) return; // Only fire for users who arrived from the Telegram bot
   fetch('/.netlify/functions/award-points', {
     method: 'POST',
