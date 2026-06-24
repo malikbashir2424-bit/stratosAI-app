@@ -1,14 +1,14 @@
 // netlify/functions/daily-checkin.js
-// Daily streak check-in. Called from the platform when a Telegram-linked
-// user opens it. Awards daily points, grows/breaks streaks, weekly bonus,
-// and a streak shield. All logic is server-side (cannot be gamed from browser).
+// Daily streak check-in. Also awards one-time Connect Wallet bonus (+300)
+// the first time a wallet is linked here, bypassing the bot webhook.
 
 const SUPA_URL = process.env.DB_URL || process.env.SUPABASE_URL;
 const SUPA_KEY = process.env.DB_SERVICE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
-const DAILY_POINTS   = 100;   // base points per day
-const WEEKLY_BONUS   = 2000;  // every 7-day streak (needs wallet)
-const SHIELD_AT      = 14;    // streak length that grants a shield
+const DAILY_POINTS   = 100;
+const WEEKLY_BONUS   = 2000;
+const SHIELD_AT      = 14;
+const WALLET_BONUS   = 300;
 
 async function sb(path, opts = {}) {
   const res = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
@@ -62,21 +62,46 @@ exports.handler = async function (event) {
     const now = new Date();
     const last = u.last_checkin ? new Date(u.last_checkin) : null;
 
-    // Already checked in today?
+    // One-time Connect Wallet bonus
+    let walletBonusAwarded = 0;
+    let walletJustLinked = false;
+    if (wallet && !u.task_connect_wallet) {
+      walletBonusAwarded = WALLET_BONUS;
+      walletJustLinked = true;
+    }
+
+    // Already checked in today? (still grant wallet bonus if newly linked)
     if (last && daysBetween(last, now) === 0) {
+      if (walletJustLinked) {
+        const newPts = (u.points || 0) + walletBonusAwarded;
+        await sb(`users?telegram_id=eq.${telegramId}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({
+            points: newPts,
+            task_connect_wallet: true,
+            wallet_address: wallet || u.wallet_address,
+          }),
+        });
+        return {
+          statusCode: 200, headers,
+          body: JSON.stringify({
+            status: "already", streak: u.streak_count || 0, points: newPts,
+            shield: u.shield_active || false, walletBonus: walletBonusAwarded,
+            message: "Already checked in today",
+          }),
+        };
+      }
       return {
         statusCode: 200, headers,
         body: JSON.stringify({
-          status: "already",
-          streak: u.streak_count || 0,
-          points: u.points || 0,
-          shield: u.shield_active || false,
-          message: "Already checked in today",
+          status: "already", streak: u.streak_count || 0, points: u.points || 0,
+          shield: u.shield_active || false, message: "Already checked in today",
         }),
       };
     }
 
-    const gap = last ? daysBetween(last, now) : 1; // days since last check-in
+    const gap = last ? daysBetween(last, now) : 1;
     let streak = u.streak_count || 0;
     let shield = u.shield_active || false;
     let shieldUsed = false;
@@ -84,63 +109,52 @@ exports.handler = async function (event) {
     let weeklyHit = false;
 
     if (gap === 1) {
-      streak += 1;                       // consecutive day
+      streak += 1;
     } else if (gap >= 2) {
-      // Missed at least a day
-      if (shield) {
-        streak += 1;                     // shield saves the streak
-        shield = false;
-        shieldUsed = true;
-      } else {
-        streak = 1;                      // streak resets
-      }
+      if (shield) { streak += 1; shield = false; shieldUsed = true; }
+      else { streak = 1; }
     } else {
       streak = Math.max(1, streak);
     }
 
-    // Weekly bonus: every 7th consecutive day, requires a linked wallet
     if (streak > 0 && streak % 7 === 0) {
       if (wallet) { earned += WEEKLY_BONUS; weeklyHit = true; }
     }
 
-    // Grant shield at SHIELD_AT-day streak (once per shield)
     let grantedShield = false;
     if (streak >= SHIELD_AT && !shield && !shieldUsed && streak % SHIELD_AT === 0) {
-      shield = true;
-      grantedShield = true;
+      shield = true; grantedShield = true;
     }
 
     const longest = Math.max(u.longest_streak || 0, streak);
-    const newPoints = (u.points || 0) + earned;
+    const newPoints = (u.points || 0) + earned + walletBonusAwarded;
+
+    const patch = {
+      points: newPoints,
+      streak_count: streak,
+      longest_streak: longest,
+      last_checkin: now.toISOString(),
+      total_checkins: (u.total_checkins || 0) + 1,
+      shield_active: shield,
+      shield_used_at: shieldUsed ? now.toISOString() : u.shield_used_at,
+      weekly_bonus_count: (u.weekly_bonus_count || 0) + (weeklyHit ? 1 : 0),
+      wallet_address: wallet || u.wallet_address,
+    };
+    if (walletJustLinked) patch.task_connect_wallet = true;
 
     await sb(`users?telegram_id=eq.${telegramId}`, {
       method: "PATCH",
       headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({
-        points: newPoints,
-        streak_count: streak,
-        longest_streak: longest,
-        last_checkin: now.toISOString(),
-        total_checkins: (u.total_checkins || 0) + 1,
-        shield_active: shield,
-        shield_used_at: shieldUsed ? now.toISOString() : u.shield_used_at,
-        weekly_bonus_count: (u.weekly_bonus_count || 0) + (weeklyHit ? 1 : 0),
-        wallet_address: wallet || u.wallet_address,
-      }),
+      body: JSON.stringify(patch),
     });
 
     return {
       statusCode: 200, headers,
       body: JSON.stringify({
-        status: "ok",
-        streak,
-        longest,
-        earned,
-        points: newPoints,
+        status: "ok", streak, longest, earned, points: newPoints,
         weeklyBonus: weeklyHit ? WEEKLY_BONUS : 0,
-        shield,
-        shieldUsed,
-        grantedShield,
+        walletBonus: walletBonusAwarded,
+        shield, shieldUsed, grantedShield,
         nextWeeklyIn: 7 - (streak % 7 === 0 ? 7 : streak % 7),
       }),
     };
