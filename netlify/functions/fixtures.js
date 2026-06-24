@@ -115,7 +115,7 @@ async function fetchFromApiFootball() {
   if (!API_KEY) throw new Error("Missing API key");
   const BASE = "https://v3.football.api-sports.io";
   const apiHeaders = { "x-apisports-key": API_KEY };
-  const popularLeagues = [1, 39, 140, 135, 78, 61, 2, 3, 4, 5, 6, 9, 10, 13, 15, 29, 30, 34, 45, 48, 17, 88, 94, 203];
+  const WORLD_CUP_ID = 1;
 
   async function api(path) {
     const res = await fetch(BASE + path, { headers: apiHeaders });
@@ -127,34 +127,25 @@ async function fetchFromApiFootball() {
   const today = new Date();
   let fixtures = [];
 
-  // 1) Live matches happening right now (any league)
+  // World Cup only — fetch a date range (today + next 7 days) in ONE call.
   try {
-    const live = await api(`/fixtures?live=all`);
-    if (live.response?.length) {
-      const f = live.response.filter((x) => popularLeagues.includes(x.league.id));
-      fixtures = fixtures.concat(f.length ? f : live.response.slice(0, 10));
-    }
+    const from = fmt(today);
+    const to = fmt(new Date(today.getTime() + 7 * 86400000));
+    const data = await api(`/fixtures?league=${WORLD_CUP_ID}&season=${today.getFullYear()}&from=${from}&to=${to}`);
+    if (data.response?.length) fixtures = data.response;
   } catch (e) {}
 
-  // 2) Today's fixtures
-  try {
-    const data = await api(`/fixtures?date=${fmt(today)}`);
-    if (data.response?.length) {
-      const filtered = data.response.filter((f) => popularLeagues.includes(f.league.id));
-      fixtures = fixtures.concat(filtered.length ? filtered : data.response.slice(0, 15));
+  // Fallback: if the range call returned nothing, try plain date scan (World Cup filtered)
+  if (!fixtures.length) {
+    for (let i = 0; i <= 7; i++) {
+      try {
+        const date = fmt(new Date(today.getTime() + i * 86400000));
+        const data = await api(`/fixtures?date=${date}`);
+        if (data.response?.length) {
+          fixtures = fixtures.concat(data.response.filter((f) => f.league.id === WORLD_CUP_ID));
+        }
+      } catch (e) {}
     }
-  } catch (e) {}
-
-  // 3) Next 7 days of upcoming (not-started) fixtures — full week ahead
-  for (let i = 1; i <= 7; i++) {
-    try {
-      const date = fmt(new Date(today.getTime() + i * 86400000));
-      const data = await api(`/fixtures?date=${date}&status=NS`);
-      if (data.response?.length) {
-        const filtered = data.response.filter((f) => popularLeagues.includes(f.league.id));
-        fixtures = fixtures.concat(filtered.length ? filtered : data.response.slice(0, 8));
-      }
-    } catch (e) {}
   }
 
   const seen = new Set();
