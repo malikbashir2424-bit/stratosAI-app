@@ -127,21 +127,32 @@ async function fetchFromApiFootball() {
   const today = new Date();
   let fixtures = [];
 
+  // 1) Live matches happening right now (any league)
+  try {
+    const live = await api(`/fixtures?live=all`);
+    if (live.response?.length) {
+      const f = live.response.filter((x) => popularLeagues.includes(x.league.id));
+      fixtures = fixtures.concat(f.length ? f : live.response.slice(0, 10));
+    }
+  } catch (e) {}
+
+  // 2) Today's fixtures
   try {
     const data = await api(`/fixtures?date=${fmt(today)}`);
     if (data.response?.length) {
       const filtered = data.response.filter((f) => popularLeagues.includes(f.league.id));
-      fixtures = filtered.length ? filtered : data.response.slice(0, 15);
+      fixtures = fixtures.concat(filtered.length ? filtered : data.response.slice(0, 15));
     }
   } catch (e) {}
 
-  for (let i = 1; i <= 3 && fixtures.length < 5; i++) {
+  // 3) Next 7 days of upcoming (not-started) fixtures — full week ahead
+  for (let i = 1; i <= 7; i++) {
     try {
       const date = fmt(new Date(today.getTime() + i * 86400000));
       const data = await api(`/fixtures?date=${date}&status=NS`);
       if (data.response?.length) {
         const filtered = data.response.filter((f) => popularLeagues.includes(f.league.id));
-        fixtures = fixtures.concat(filtered.length ? filtered : data.response.slice(0, 5));
+        fixtures = fixtures.concat(filtered.length ? filtered : data.response.slice(0, 8));
       }
     } catch (e) {}
   }
@@ -153,8 +164,13 @@ async function fetchFromApiFootball() {
     return true;
   });
 
-  const liveSet = new Set(["1H", "2H", "HT", "ET", "BT", "LIVE"]);
+  const liveSet = new Set(["1H", "2H", "HT", "ET", "BT", "LIVE", "P", "INT"]);
   const nsSet = new Set(["NS", "TBD"]);
+  // Keep only upcoming + live in the feed (drop finished/postponed/cancelled at source)
+  fixtures = fixtures.filter((f) => {
+    const s = f.fixture.status.short;
+    return liveSet.has(s) || nsSet.has(s);
+  });
   fixtures.sort((a, b) => {
     const rank = (s) => (liveSet.has(s) ? 0 : nsSet.has(s) ? 1 : 2);
     const diff = rank(a.fixture.status.short) - rank(b.fixture.status.short);
@@ -162,7 +178,7 @@ async function fetchFromApiFootball() {
     return new Date(a.fixture.date) - new Date(b.fixture.date);
   });
 
-  fixtures = fixtures.slice(0, 20);
+  fixtures = fixtures.slice(0, 40);
 
   const matches = fixtures.map((f) => ({
     id: f.fixture.id,
