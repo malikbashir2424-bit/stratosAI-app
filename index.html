@@ -565,6 +565,14 @@ input{font-family:inherit;}
 </div>
 
 <script>
+// Capture Telegram ID from URL FIRST, before any wallet/auto-reconnect logic runs
+(function(){
+  try{
+    var _p=new URLSearchParams(window.location.search);
+    var _tgid=_p.get('tgid');
+    if(_tgid && !isNaN(_tgid)){localStorage.setItem('stratos_telegram_id',_tgid);}
+  }catch(e){}
+})();
 var S={matches:{},betSlip:[],aiCache:{},activeTab:'slip',mobTab:'slip'};
 var S_ALL=[];
 var LS_BETS='stratos_bets';
@@ -1055,7 +1063,7 @@ window.addEventListener('scroll',function(){document.getElementById('hamBtn').cl
 var W={connected:false,address:null};
 function openWallet(){if(W.connected){document.getElementById('wNotConnected').style.display='none';document.getElementById('wConnected').style.display='';}else{document.getElementById('wNotConnected').style.display='';document.getElementById('wConnected').style.display='none';}document.getElementById('walletOverlay').classList.add('show');}
 function closeWallet(){document.getElementById('walletOverlay').classList.remove('show');}
-function setConnected(address){W.connected=true;W.address=address;track('wallet_connect');sendPlatformEvent('connect_wallet');var short=address.slice(0,6)+'...'+address.slice(-4);document.getElementById('walletBtn').classList.add('connected');document.getElementById('walletBtnText').textContent=short;document.getElementById('wAddress').textContent=address;document.getElementById('wNotConnected').style.display='none';document.getElementById('wConnected').style.display='';}
+function setConnected(address,fireEvent){W.connected=true;W.address=address;track('wallet_connect');if(fireEvent){sendPlatformEvent('connect_wallet');}var short=address.slice(0,6)+'...'+address.slice(-4);document.getElementById('walletBtn').classList.add('connected');document.getElementById('walletBtnText').textContent=short;document.getElementById('wAddress').textContent=address;document.getElementById('wNotConnected').style.display='none';document.getElementById('wConnected').style.display='';}
 var WC_PROJECT_ID='2179dfdce19850a9e8dfee5bcb792046';
 var wcProvider=null;
 
@@ -1082,7 +1090,7 @@ async function connectInjected(){
     var accounts=await p.request({method:'eth_requestAccounts'});
     if(accounts&&accounts.length){
       await ensureBNBChain(p);
-      setConnected(accounts[0]);closeWallet();
+      setConnected(accounts[0], true);closeWallet();
     }
   }catch(e){if(e&&e.code!==4001)console.log(e);}
 }
@@ -1120,7 +1128,7 @@ async function connectWalletConnect(){
     var accounts=wcProvider.accounts||[];
     if(accounts.length){
       try{await ensureBNBChain(wcProvider);}catch(ce){}
-      setConnected(accounts[0]);closeWallet();
+      setConnected(accounts[0], true);closeWallet();
     }
   }catch(e){
     if(e&&e.code!==4001)console.log('WC error:',e&&e.message);
@@ -1525,6 +1533,7 @@ function sendPlatformEvent(eventType){
       alert('DIAG: No tgid in storage. Open the site FROM the bot link (?tgid=...). Event NOT sent.');
       return;
     }
+    alert('DIAG: about to send connect_wallet with tgid = "'+telegramId+'" (parsed: '+parseInt(telegramId)+')');
     fetch('/.netlify/functions/award-points', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ telegramId: parseInt(telegramId), eventType: eventType })
