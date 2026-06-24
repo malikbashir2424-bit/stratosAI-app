@@ -1527,22 +1527,21 @@ buildTicker();
 // The bot URL and secret are never exposed in the browser.
 function sendPlatformEvent(eventType){
   var telegramId = localStorage.getItem('stratos_telegram_id');
-  // ===== TEMP DIAGNOSTIC (remove after debugging) =====
+  if(!telegramId) return; // Only fire for users who arrived from the Telegram bot
+  // connect_wallet is awarded via daily-checkin (service-key, reliable) using the linked wallet.
   if(eventType==='connect_wallet'){
-    if(!telegramId){
-      alert('DIAG: No tgid in storage. Open the site FROM the bot link (?tgid=...). Event NOT sent.');
-      return;
-    }
-    alert('DIAG: about to send connect_wallet with tgid = "'+telegramId+'" (parsed: '+parseInt(telegramId)+')');
-    fetch('/.netlify/functions/award-points', {
+    var addr = (W && W.address) ? W.address : null;
+    if(!addr) return;
+    fetch('/.netlify/functions/daily-checkin', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ telegramId: parseInt(telegramId), eventType: eventType })
-    }).then(function(r){ return r.text().then(function(t){ alert('DIAG connect_wallet → HTTP '+r.status+'\n'+t); }); })
-      .catch(function(e){ alert('DIAG connect_wallet → FETCH FAILED: '+e.message); });
+      body: JSON.stringify({ telegramId: parseInt(telegramId), wallet: addr })
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d && d.walletBonus){
+        try{ showToast && showToast('+'+d.walletBonus+' $STRAT — Wallet linked!'); }catch(e){}
+      }
+    }).catch(function(){});
     return;
   }
-  // ===== END DIAGNOSTIC =====
-  if(!telegramId) return; // Only fire for users who arrived from the Telegram bot
   fetch('/.netlify/functions/award-points', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
