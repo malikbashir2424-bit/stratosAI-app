@@ -704,6 +704,15 @@ function updateMatchLiveUI(m,d){
   var row=document.getElementById('mr-'+m.id);if(!row)return;
   var isLive=['1H','2H','ET','HT','BT','LIVE'].includes(d.status);
   var isFT=['FT','AET','PEN'].includes(d.status);
+  // Once a match finishes, remove it from the Upcoming list (kept in S_ALL for settlement)
+  if(isFT){
+    var det=document.getElementById('md-'+m.id);
+    var ls=document.getElementById('ls-'+m.id);
+    if(ls)ls.remove();
+    if(det)det.remove();
+    row.remove();
+    return;
+  }
   var hG=d.homeGoals!==null?d.homeGoals:0;
   var aG=d.awayGoals!==null?d.awayGoals:0;
   var tc=document.getElementById('tc-'+m.id);
