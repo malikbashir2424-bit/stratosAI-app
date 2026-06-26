@@ -367,6 +367,18 @@ input{font-family:inherit;}
 /* AI ACC BADGE */
 .ai-acc-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:var(--g);background:rgba(0,232,122,.07);border:1px solid rgba(0,232,122,.18);border-radius:999px;padding:2px 8px;}
 
+/* ── P2P POOL LAYER ── */
+.pool-bar{display:flex;align-items:center;gap:6px;padding:3px 12px 0;}
+.pool-bar-ico{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.05em;}
+.pool-bar-dot{width:4px;height:4px;border-radius:50%;background:var(--p);box-shadow:0 0 4px var(--p);animation:pulse 2s infinite;}
+.pool-bar-total{font-size:9px;font-weight:800;color:var(--t2);}
+.pool-bar-total b{color:var(--p);}
+.pool-bar-cnt{font-size:8px;color:var(--t3);margin-left:auto;}
+.odd-pct{font-size:7px;font-weight:700;color:var(--t3);margin-top:1px;letter-spacing:.02em;}
+.odd.sel .odd-pct{color:var(--c);}
+.odd-pctbar{width:100%;height:2px;border-radius:2px;background:rgba(255,255,255,.06);margin-top:3px;overflow:hidden;}
+.odd-pctbar-fill{height:100%;border-radius:2px;transition:width .4s ease;}
+
 
 /* ════════════════════════
    LIVE TICKER
@@ -594,6 +606,110 @@ var TDB={9:{gs:2.80,gc:0.50,form:"WWWWW"},26:{gs:1.80,gc:0.90,form:"WWDWW"},1533
 var DEF={gs:1.40,gc:1.20,form:"WDLWL"};
 function gt(id){return TDB[id]||DEF;}
 
+/* ══ P2P POOL LAYER ══
+   A lightweight demo layer over the existing odds. Each match gets a SEEDED
+   pool derived from its real odds (favourite => bigger share => higher %).
+   The seed is deterministic per match (stable across refreshes), grows slowly
+   over time to feel alive, and the user's OWN real bets add to it.
+   This is a visual foundation for the future on-chain P2P market — it never
+   touches the Poisson odds, bet slip, or settlement logic. */
+var POOL={};            // poolId -> {h,d,a, base, seedAt}
+var USER_POOL={};       // poolId -> {h,d,a}  (real stakes from this user)
+
+// deterministic pseudo-random from a string (so each match is stable)
+function seedRand(str){
+  var x=0;for(var i=0;i<str.length;i++){x=(x*31+str.charCodeAt(i))>>>0;}
+  // simple LCG step
+  x=(1103515245*x+12345)>>>0;
+  return (x%1000)/1000; // 0..1
+}
+
+// build (or fetch) the seeded pool for a match, based on its odds
+function getPool(m,o){
+  var id=String(m.id);
+  if(!POOL[id]){
+    // implied probability from odds => base share of the pool
+    var ih=1/o.home, idr=1/o.draw, ia=1/o.away;
+    var sum=ih+idr+ia;
+    ih/=sum; idr/=sum; ia/=sum;
+    // base pool size: deterministic per match, 8k–32k range
+    var base=8000+Math.floor(seedRand(id+'b')*24000);
+    // add mild per-outcome noise so it doesn't look too clean
+    var nH=0.85+seedRand(id+'h')*0.3;
+    var nD=0.85+seedRand(id+'d')*0.3;
+    var nA=0.85+seedRand(id+'a')*0.3;
+    POOL[id]={
+      h:Math.round(base*ih*nH),
+      d:Math.round(base*idr*nD),
+      a:Math.round(base*ia*nA),
+      seedAt:Date.now()
+    };
+  }
+  // merge any real user stakes on top of the seed
+  var up=USER_POOL[id]||{h:0,d:0,a:0};
+  var p=POOL[id];
+  return {h:p.h+up.h, d:p.d+up.d, a:p.a+up.a};
+}
+
+// percentages for the 3 outcomes
+function poolPct(p){
+  var t=p.h+p.d+p.a; if(t<=0)t=1;
+  return {
+    h:Math.round(p.h/t*100),
+    d:Math.round(p.d/t*100),
+    a:Math.round(p.a/t*100),
+    total:t
+  };
+}
+
+// add the user's real stake to a match pool (called when a bet is placed)
+function addUserStake(matchId,pick,amount){
+  var id=String(matchId);
+  if(!USER_POOL[id])USER_POOL[id]={h:0,d:0,a:0};
+  if(pick==='1')USER_POOL[id].h+=amount;
+  else if(pick==='X')USER_POOL[id].d+=amount;
+  else if(pick==='2')USER_POOL[id].a+=amount;
+  refreshPoolUI(id);
+}
+
+// slowly grow seeds over time so the board feels alive (small, gradual)
+function tickPools(){
+  var ids=Object.keys(POOL);
+  for(var i=0;i<ids.length;i++){
+    var id=ids[i], p=POOL[id];
+    // ~0.3% of current size spread across outcomes, weighted to current shares
+    var t=p.h+p.d+p.a; if(t<=0)continue;
+    var grow=Math.max(5,Math.round(t*0.003*(0.5+seedRand(id+Date.now())) ));
+    // distribute the growth proportionally to existing shares
+    p.h+=Math.round(grow*(p.h/t));
+    p.d+=Math.round(grow*(p.d/t));
+    p.a+=Math.round(grow*(p.a/t));
+    refreshPoolUI(id);
+  }
+}
+
+// fmt big numbers: 14200 -> 14.2k
+function fmtPool(n){
+  if(n>=1000)return (n/1000).toFixed(1).replace(/\.0$/,'')+'k';
+  return String(n);
+}
+
+// update the pool UI for one match (total + per-outcome %)
+function refreshPoolUI(id){
+  var m=S.matches[id]; if(!m)return;
+  var o=(LIVE_DATA[id]&&LIVE_DATA[id].status)?null:calcOdds(m);
+  if(!o)return; // skip live/finished
+  var p=getPool(m,o), pc=poolPct(p);
+  var totEl=document.getElementById('pooltot-'+id);
+  if(totEl)totEl.innerHTML='<b>'+fmtPool(pc.total)+'</b> $STRAT';
+  [['1','h'],['X','d'],['2','a']].forEach(function(pair){
+    var pctEl=document.getElementById('pct-'+id+'-'+pair[0]);
+    var barEl=document.getElementById('pctbar-'+id+'-'+pair[0]);
+    if(pctEl)pctEl.textContent=pc[pair[1]]+'%';
+    if(barEl)barEl.style.width=pc[pair[1]]+'%';
+  });
+}
+
 function calcOdds(m){
   var h=gt(m.homeId),a=gt(m.awayId);
   var hxg=Math.max(0.2,((h.gs+a.gc)/2)*1.12),axg=Math.max(0.2,((a.gs+h.gc)/2)*0.96);
@@ -780,6 +896,7 @@ function renderMatches(matches){
         '</div>'+
         '<svg class="match-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>'+
       '</div>'+
+      '<div class="pool-bar"><span class="pool-bar-ico"><span class="pool-bar-dot"></span>Pool</span><span class="pool-bar-total" id="pooltot-'+m.id+'">—</span><span class="pool-bar-cnt" id="poolcnt-'+m.id+'"></span></div>'+
       '<div class="odds-row">'+
         oddBtn(m.id,'1',m.home,o.home)+oddBtn(m.id,'X','Draw',o.draw)+oddBtn(m.id,'2',m.away,o.away)+
         '<button class="share-x" onclick="event.stopPropagation();shareMatch(\''+hE+'\',\''+aE+'\')"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></button>'+
@@ -787,6 +904,12 @@ function renderMatches(matches){
       '<div class="match-detail" id="md-'+m.id+'"><div style="padding:11px;color:var(--t3);font-size:11px;"><span class="spinner"></span> Loading AI analysis…</div></div>'+
     '</div>';
   }).join('');
+  // fill the P2P pool layer for the rendered matches
+  matches.forEach(function(m){
+    var ld=LIVE_DATA[m.id];
+    if(ld&&ld.status)return; // skip live/finished
+    refreshPoolUI(String(m.id));
+  });
 }
 
 function oddBtn(mId,pick,label,val){
@@ -932,6 +1055,11 @@ function placeSlip(){
   saveSlip(slip);
   sendPlatformEvent('place_bet');
   track('bet_placed',{stake:SLIP_STAKE,selections:slip.selections.length});
+  // add the user's real stake to each match's P2P pool (split evenly across selections)
+  try{
+    var perSel=SLIP_STAKE/(S.betSlip.length||1);
+    S.betSlip.forEach(function(b){ addUserStake(b.id,b.pick,Math.round(perSel)); });
+  }catch(e){}
 
   var picks=S.betSlip.map(function(b){return b.label+' @ '+fmtOdds(b.odds);}).join(' + ');
   document.getElementById('toastBody').innerHTML=
@@ -1319,9 +1447,15 @@ var LEGAL={
 function openLegal(type){var l=LEGAL[type];document.getElementById('legalTitle').textContent=l.title;document.getElementById('legalBody').innerHTML=l.html;document.getElementById('legalOverlay').style.display='flex';}
 function closeLegalModal(){document.getElementById('legalOverlay').style.display='none';}
 
-/* ══ OVERRIDE oddBtn — add data-raw ══ */
+/* ══ OVERRIDE oddBtn — add data-raw + P2P pool % ══ */
 function oddBtn(mId,pick,label,val){
-  return '<div class="odd" id="ob-'+mId+'-'+pick+'" data-raw="'+val+'" onclick="selectOdd(event,'+mId+',\''+pick+'\',\''+label+'\','+val+')"><span class="odd-lbl">'+label+'</span><span class="odd-val">'+fmtOdds(val)+'</span></div>';
+  var col=pick==='1'?'#00c8ff':pick==='X'?'#94a3b8':'#f59e0b';
+  return '<div class="odd" id="ob-'+mId+'-'+pick+'" data-raw="'+val+'" onclick="selectOdd(event,'+mId+',\''+pick+'\',\''+label+'\','+val+')">'+
+    '<span class="odd-lbl">'+label+'</span>'+
+    '<span class="odd-val">'+fmtOdds(val)+'</span>'+
+    '<span class="odd-pct" id="pct-'+mId+'-'+pick+'">—</span>'+
+    '<div class="odd-pctbar"><div class="odd-pctbar-fill" id="pctbar-'+mId+'-'+pick+'" style="width:0%;background:'+col+'"></div></div>'+
+  '</div>';
 }
 
 /* ══ SLIP HTML — Single accumulator slip ══ */
@@ -1393,130 +1527,36 @@ function updateAiAccuracy(){
 }
 
 
-/* ══ LIVE TICKER ══ */
-var TICKER_BETS = [
-  {wallet:'0x402c...16f1', amount:500, pick:'Draw', match:'Ecuador vs Japan', mins:33},
-  {wallet:'0xe627...8175', amount:100, pick:'Draw', match:'Qatar vs Chile', mins:16},
-  {wallet:'0xc3aa...68b0', amount:1200, pick:'Canada Win', match:'Canada vs Morocco', mins:49},
-  {wallet:'0x1116...2f98', amount:125, pick:'Uruguay Win', match:'Belgium vs Uruguay', mins:20},
-  {wallet:'0xd355...fa97', amount:750, pick:'Colombia Win', match:'Colombia vs Mexico', mins:7},
-  {wallet:'0xe44f...3f46', amount:1000, pick:'Ecuador Win', match:'Spain vs Ecuador', mins:17},
-  {wallet:'0x9337...6fa6', amount:2500, pick:'USA Win', match:'USA vs Switzerland', mins:24},
-  {wallet:'0x2c55...6be0', amount:300, pick:'Spain Win', match:'Spain vs Ecuador', mins:42},
-  {wallet:'0x812c...3208', amount:1000, pick:'England Win', match:'England vs Mexico', mins:25},
-  {wallet:'0xfb2a...822d', amount:2000, pick:'Sweden Win', match:'Uruguay vs Sweden', mins:11},
-  {wallet:'0x5ced...d92d', amount:100, pick:'USA Win', match:'USA vs Switzerland', mins:14},
-  {wallet:'0xd608...9363', amount:750, pick:'Draw', match:'Senegal vs Argentina', mins:18},
-  {wallet:'0xada7...2694', amount:750, pick:'Draw', match:'Qatar vs Portugal', mins:11},
-  {wallet:'0x01fd...6376', amount:125, pick:'Draw', match:'France vs Argentina', mins:17},
-  {wallet:'0xc3b8...5c11', amount:500, pick:'Ghana Win', match:'Ghana vs Senegal', mins:58},
-  {wallet:'0x9bd0...a62b', amount:2000, pick:'Uruguay Win', match:'England vs Uruguay', mins:28},
-  {wallet:'0x870b...c2ce', amount:100, pick:'Draw', match:'Mexico vs Brazil', mins:39},
-  {wallet:'0x15eb...f94b', amount:600, pick:'Draw', match:'Spain vs Netherlands', mins:44},
-  {wallet:'0xd0a9...ec1d', amount:2000, pick:'Colombia Win', match:'Colombia vs Senegal', mins:12},
-  {wallet:'0x4bc0...fa33', amount:300, pick:'Draw', match:'Nigeria vs Japan', mins:30},
-  {wallet:'0xd6a3...c25c', amount:1500, pick:'Sweden Win', match:'Chile vs Sweden', mins:45},
-  {wallet:'0x2776...7846', amount:300, pick:'Draw', match:'France vs Nigeria', mins:39},
-  {wallet:'0x1479...3d6f', amount:150, pick:'Draw', match:'Brazil vs Sweden', mins:25},
-  {wallet:'0x56c8...f999', amount:3000, pick:'Japan Win', match:'Japan vs Morocco', mins:10},
-  {wallet:'0x3b3d...0601', amount:800, pick:'Italy Win', match:'Italy vs Brazil', mins:25},
-  {wallet:'0x4d45...6459', amount:2000, pick:'Draw', match:'Croatia vs Germany', mins:39},
-  {wallet:'0xa2ba...dce9', amount:2500, pick:'Draw', match:'Argentina vs England', mins:41},
-  {wallet:'0xf00e...1579', amount:750, pick:'Netherlands Win', match:'Germany vs Netherlands', mins:6},
-  {wallet:'0x59c9...04de', amount:1200, pick:'England Win', match:'South Korea vs England', mins:28},
-  {wallet:'0x7b00...e208', amount:50, pick:'Draw', match:'France vs Ecuador', mins:6},
-  {wallet:'0xe790...dd70', amount:5000, pick:'Draw', match:'France vs Croatia', mins:17},
-  {wallet:'0xefc5...da79', amount:150, pick:'Germany Win', match:'Germany vs Argentina', mins:47},
-  {wallet:'0x11c0...d649', amount:3000, pick:'South Korea Win', match:'South Korea vs Netherlands', mins:57},
-  {wallet:'0xc05d...248b', amount:600, pick:'Draw', match:'Sweden vs Switzerland', mins:23},
-  {wallet:'0xfb97...061c', amount:150, pick:'Portugal Win', match:'Sweden vs Portugal', mins:48},
-  {wallet:'0xbdc9...728d', amount:600, pick:'Japan Win', match:'Japan vs Ecuador', mins:55},
-  {wallet:'0x6e87...823b', amount:1000, pick:'England Win', match:'Colombia vs England', mins:21},
-  {wallet:'0xf5f3...90f9', amount:1200, pick:'Ecuador Win', match:'Ecuador vs Argentina', mins:52},
-  {wallet:'0xecb7...219a', amount:2000, pick:'Draw', match:'Argentina vs Denmark', mins:34},
-  {wallet:'0x12fd...7176', amount:75, pick:'Denmark Win', match:'Denmark vs Australia', mins:24},
-  {wallet:'0xa46b...cdf2', amount:1500, pick:'Denmark Win', match:'Denmark vs Ecuador', mins:5},
-  {wallet:'0x732b...1c1d', amount:200, pick:'Draw', match:'Spain vs Portugal', mins:28},
-  {wallet:'0x7804...849d', amount:2500, pick:'Draw', match:'Sweden vs Brazil', mins:20},
-  {wallet:'0x6d78...6329', amount:150, pick:'Draw', match:'England vs Germany', mins:48},
-  {wallet:'0xf670...1bc6', amount:5000, pick:'Senegal Win', match:'France vs Senegal', mins:47},
-  {wallet:'0x243d...e6ce', amount:500, pick:'Spain Win', match:'Morocco vs Spain', mins:33},
-  {wallet:'0xe669...e612', amount:2500, pick:'Draw', match:'Belgium vs Turkey', mins:19},
-  {wallet:'0x05d1...3f56', amount:75, pick:'Spain Win', match:'Denmark vs Spain', mins:3},
-  {wallet:'0xfdcb...710f', amount:600, pick:'Draw', match:'Qatar vs Mexico', mins:2},
-  {wallet:'0x65f0...19fd', amount:100, pick:'Australia Win', match:'Chile vs Australia', mins:10},
-  {wallet:'0xf841...b471', amount:150, pick:'Chile Win', match:'Croatia vs Chile', mins:52},
-  {wallet:'0xab08...9019', amount:75, pick:'Canada Win', match:'Brazil vs Canada', mins:2},
-  {wallet:'0x9eb6...2e8e', amount:1200, pick:'Switzerland Win', match:'Australia vs Switzerland', mins:29},
-  {wallet:'0xab77...6bbf', amount:800, pick:'Draw', match:'Japan vs Portugal', mins:47},
-  {wallet:'0x2886...059a', amount:750, pick:'Ghana Win', match:'Croatia vs Ghana', mins:11},
-  {wallet:'0x10d0...5fda', amount:125, pick:'England Win', match:'England vs Belgium', mins:8},
-  {wallet:'0x0d8b...ee6e', amount:800, pick:'Chile Win', match:'Chile vs Argentina', mins:58},
-  {wallet:'0x6430...a76a', amount:125, pick:'Ecuador Win', match:'Ecuador vs Qatar', mins:23},
-  {wallet:'0x064f...3516', amount:2500, pick:'Belgium Win', match:'Germany vs Belgium', mins:19},
-  {wallet:'0x9fa7...b487', amount:1000, pick:'Turkey Win', match:'Turkey vs Morocco', mins:12},
-  {wallet:'0xa65d...43ec', amount:750, pick:'Draw', match:'France vs Turkey', mins:52},
-  {wallet:'0xcb10...e7d6', amount:150, pick:'Draw', match:'Japan vs Belgium', mins:54},
-  {wallet:'0xfebb...6e49', amount:250, pick:'Switzerland Win', match:'Switzerland vs Brazil', mins:6},
-  {wallet:'0x0f26...a5eb', amount:125, pick:'Denmark Win', match:'Brazil vs Denmark', mins:29},
-  {wallet:'0xaa19...f621', amount:2500, pick:'Brazil Win', match:'Chile vs Brazil', mins:10},
-  {wallet:'0xa007...52a0', amount:600, pick:'Draw', match:'France vs Switzerland', mins:11},
-  {wallet:'0xf33c...02c3', amount:5000, pick:'USA Win', match:'South Korea vs USA', mins:34},
-  {wallet:'0x0679...cb7d', amount:800, pick:'USA Win', match:'USA vs Sweden', mins:54},
-  {wallet:'0x1a5d...b0ce', amount:125, pick:'Draw', match:'Ecuador vs Ghana', mins:43},
-  {wallet:'0xfda1...1300', amount:2500, pick:'Senegal Win', match:'Senegal vs Spain', mins:22},
-  {wallet:'0xa8e5...6bda', amount:1500, pick:'Draw', match:'Italy vs Uruguay', mins:40},
-  {wallet:'0xe39a...8066', amount:250, pick:'Australia Win', match:'Qatar vs Australia', mins:23},
-  {wallet:'0x2ed6...816e', amount:300, pick:'South Korea Win', match:'South Korea vs Chile', mins:52},
-  {wallet:'0xfc89...4529', amount:500, pick:'Senegal Win', match:'Senegal vs USA', mins:26},
-  {wallet:'0x3ee7...a8a1', amount:125, pick:'Ecuador Win', match:'Ecuador vs Brazil', mins:33},
-  {wallet:'0xed89...2d9c', amount:150, pick:'Draw', match:'Senegal vs Croatia', mins:47},
-  {wallet:'0x29f5...971b', amount:300, pick:'Draw', match:'England vs Switzerland', mins:41},
-  {wallet:'0x709a...5e10', amount:150, pick:'Draw', match:'South Korea vs Ecuador', mins:34},
-  {wallet:'0xc730...dbce', amount:250, pick:'USA Win', match:'USA vs Denmark', mins:46},
-  {wallet:'0x8403...1d86', amount:2500, pick:'Draw', match:'Croatia vs Mexico', mins:48},
-  {wallet:'0x856c...a8b6', amount:5000, pick:'Draw', match:'Ecuador vs France', mins:8},
-  {wallet:'0xfc56...72da', amount:75, pick:'Senegal Win', match:'Senegal vs Netherlands', mins:32},
-  {wallet:'0x7d14...dac3', amount:75, pick:'Draw', match:'South Korea vs Italy', mins:55},
-  {wallet:'0x92b1...b334', amount:50, pick:'Belgium Win', match:'Belgium vs Qatar', mins:19},
-  {wallet:'0xfb5f...153c', amount:125, pick:'Australia Win', match:'Uruguay vs Australia', mins:46},
-  {wallet:'0x0586...40e7', amount:250, pick:'Canada Win', match:'Canada vs England', mins:5},
-  {wallet:'0x73f4...570a', amount:1000, pick:'Switzerland Win', match:'Croatia vs Switzerland', mins:36},
-  {wallet:'0x58aa...66d5', amount:200, pick:'Brazil Win', match:'Brazil vs Belgium', mins:11},
-  {wallet:'0x95c4...530a', amount:600, pick:'Draw', match:'USA vs Croatia', mins:37},
-  {wallet:'0x1510...558a', amount:300, pick:'Croatia Win', match:'Uruguay vs Croatia', mins:24},
-  {wallet:'0xa4a8...30a3', amount:600, pick:'Draw', match:'Belgium vs Uruguay', mins:15},
-  {wallet:'0x0010...8d40', amount:400, pick:'USA Win', match:'USA vs Portugal', mins:16},
-  {wallet:'0xefa4...ddf5', amount:400, pick:'Draw', match:'Colombia vs Netherlands', mins:33},
-  {wallet:'0xbef8...5d0d', amount:800, pick:'Draw', match:'Portugal vs Germany', mins:41},
-  {wallet:'0xad60...a938', amount:800, pick:'Switzerland Win', match:'South Korea vs Switzerland', mins:31},
-  {wallet:'0x8bf5...eca3', amount:75, pick:'Draw', match:'Morocco vs Belgium', mins:27},
-  {wallet:'0xe286...37f4', amount:200, pick:'Morocco Win', match:'Turkey vs Morocco', mins:25},
-  {wallet:'0x9df5...daba', amount:500, pick:'England Win', match:'England vs Nigeria', mins:58},
-  {wallet:'0xf1ae...07de', amount:800, pick:'Draw', match:'Brazil vs Ecuador', mins:52},
-  {wallet:'0x278f...ed0f', amount:125, pick:'Senegal Win', match:'Senegal vs USA', mins:28},
+/* ══ INFO TICKER — tips, news & reminders (replaces fake wallets) ══ */
+var TICKER_MESSAGES = [
+  {icon:'🎁', text:'Invite a friend and earn <b>300 $STRAT</b> — share your referral link'},
+  {icon:'🔥', text:'Don\'t break your streak — check in daily for <b>+100 $STRAT</b>'},
+  {icon:'💎', text:'Connect your wallet to unlock the <b>+2000 weekly bonus</b>'},
+  {icon:'📊', text:'Check the <b>AI prediction</b> before you place any bet'},
+  {icon:'🏆', text:'Climb the <b>leaderboard</b> before the presale goes live'},
+  {icon:'🤖', text:'Every match gets a full <b>AI analysis</b> — tap any game to see it'},
+  {icon:'⚡', text:'Build an <b>accumulator</b> — combine picks for bigger returns'},
+  {icon:'🛡', text:'Reach a 14-day streak to earn a <b>Streak Shield</b>'},
+  {icon:'🎯', text:'Track your <b>win rate</b> and AI accuracy in My Bets'},
+  {icon:'🚀', text:'$STRAT presale is coming — join the whitelist on <b>stratosai.net</b>'},
+  {icon:'📲', text:'Get daily rewards & reminders via our <b>Telegram bot</b>'},
+  {icon:'🔗', text:'No KYC, no bank — just connect your wallet and play'},
+  {icon:'📈', text:'Odds update live as matches approach — check back often'},
+  {icon:'💰', text:'Demo mode now — real $STRAT wagering launches after presale'},
+  {icon:'👥', text:'Invite friends to climb the ranks together before launch'},
 ];
-
 
 function buildTicker(){
   var el = document.getElementById('tickerInner');
   if(!el) return;
-  // Use all 100 bets, duplicate for seamless loop
-  var items = TICKER_BETS.concat(TICKER_BETS);
-  el.innerHTML = items.map(function(b){
-    var unit = b.mins < 2 ? 'min ago' : 'mins ago';
+  // Duplicate the list for a seamless infinite loop
+  var items = TICKER_MESSAGES.concat(TICKER_MESSAGES);
+  el.innerHTML = items.map(function(m){
     return '<div class="tick-item">'+
-      '<span class="tick-wallet">'+b.wallet+'</span>'+
-      '<span class="tick-separator">bet</span>'+
-      '<span class="tick-amount">'+b.amount.toLocaleString()+' $STRAT</span>'+
-      '<span class="tick-separator">on</span>'+
-      '<span class="tick-pick">'+b.pick+'</span>'+
-      '<span style="font-size:9px;color:var(--t3)">· '+b.match+' · '+b.mins+' '+unit+'</span>'+
+      '<span style="font-size:12px">'+m.icon+'</span>'+
+      '<span style="color:var(--t2)">'+m.text+'</span>'+
     '</div>';
   }).join('');
-  // Adjust animation speed based on number of items
-  var tickerEl = el.parentElement.parentElement;
-  if(tickerEl) tickerEl.style.setProperty('--ticker-duration', (items.length * 3)+'s');
 }
 buildTicker();
 
@@ -1722,6 +1762,8 @@ renderSlip();
 renderMobSlip();
 updateUserStats();
 updateMyBetsNavCount();
+// P2P pool layer: gentle growth every 8s so the board feels alive (demo)
+setInterval(tickPools,8000);
 </script>
 
 <!-- FOOTER -->
