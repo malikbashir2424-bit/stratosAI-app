@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>STRATOS AI · Sports Betting</title>
-<meta name="description" content="STRATOS AI — AI-powered sports betting. Real odds, real predictions, no KYC. Powered by $STRAT on BNB Chain."/>
+<meta name="description" content="STRATOS AI — data-driven sports prediction markets. Real odds, transparent predictions, no KYC. Powered by $STRAT on BNB Chain."/>
 <meta name="theme-color" content="#0b0d13"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -437,7 +437,7 @@ input{font-family:inherit;}
   <div class="tb-nav">
     <div class="tn active"><span class="tn-live-dot"></span>Upcoming</div>
     <div class="tn" onclick="openMyBets()">My Bets <span id="myBetsNavCount" style="display:none;background:var(--o);color:#000;border-radius:999px;font-size:8px;font-weight:900;padding:0 5px;margin-left:2px"></span></div>
-    <div class="tn" onclick="location.href='history.html'">AI Predictions</div>
+    <div class="tn" onclick="location.href='history.html'">Predictions</div>
     <div class="tn" onclick="openDaily()" style="color:var(--g)">🔥 Daily Reward</div>
     <div class="tn" onclick="openLeaderboard()">🏆 Leaderboard</div>
     <div class="tn" onclick="location.href='demo.html'">How It Works</div>
@@ -447,7 +447,7 @@ input{font-family:inherit;}
 <div class="mob-drawer" id="mobDraw">
   <a class="mob-lnk" onclick="openDaily();toggleDraw()" style="color:var(--g)">🔥 Daily Reward</a>
   <a class="mob-lnk" onclick="openLeaderboard();toggleDraw()">🏆 Leaderboard</a>
-  <a href="history.html" class="mob-lnk">AI Prediction History</a>
+  <a href="history.html" class="mob-lnk">Prediction History</a>
   <a href="demo.html" class="mob-lnk">How It Works</a>
   <a href="https://stratosai.net" target="_blank" class="mob-lnk" style="color:var(--c)">Main Site</a>
 </div>
@@ -955,10 +955,10 @@ function renderDetail(id,m,ai){
     var vE=ai.verdict.replace(/'/g,'').replace(/"/g,'');
     var hE=m.home.replace(/'/g,'').replace(/"/g,'');
     var aE=m.away.replace(/'/g,'').replace(/"/g,'');
-    aiHtml='<div class="ai-box"><div class="ai-box-head"><div class="ai-icon-wrap"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00c8ff" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div><span class="ai-box-title">STRATOS AI Analysis</span><span class="conf-pill" style="color:'+cc+';border:1px solid '+cc+'2a;background:'+cc+'0f">'+ai.confidence+' confidence</span></div><div class="ai-box-body"><p class="ai-analysis">'+ai.analysis+'</p><div class="ai-tip-box">'+ai.tip+'</div><div class="ai-footer"><div class="ai-verdict"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+ai.verdict+'</div><button class="ai-share-btn" onclick="shareAI(\''+hE+'\',\''+aE+'\',\''+vE+'\',\''+ai.confidence+'\')"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Share</button></div><a href="history.html" style="font-size:9px;color:var(--t3);margin-top:6px;display:inline-flex;">View prediction history →</a></div></div>';
+    aiHtml='<div class="ai-box"><div class="ai-box-head"><div class="ai-icon-wrap"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00c8ff" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div><span class="ai-box-title">STRATOS AI · Match Analysis</span><span class="conf-pill" style="color:'+cc+';border:1px solid '+cc+'2a;background:'+cc+'0f">'+ai.confidence+' confidence</span></div><div class="ai-box-body"><p class="ai-analysis">'+ai.analysis+'</p><div class="ai-tip-box">'+ai.tip+'</div><div class="ai-footer"><div class="ai-verdict"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+ai.verdict+'</div><button class="ai-share-btn" onclick="shareAI(\''+hE+'\',\''+aE+'\',\''+vE+'\',\''+ai.confidence+'\')"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Share</button></div><a href="history.html" style="font-size:9px;color:var(--t3);margin-top:6px;display:inline-flex;">View prediction history →</a></div></div>';
     savePrediction(m,ai);updateAiAccuracy();
   }else{
-    aiHtml='<div style="margin:0 12px 12px;padding:9px 11px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);font-size:11px;color:var(--t3);">AI Analysis launching soon. Current version uses statistical models.</div>';
+    aiHtml='<div style="margin:0 12px 12px;padding:9px 11px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);font-size:11px;color:var(--t3);">Advanced analysis launching soon. Current version uses statistical models (Poisson &amp; Elo).</div>';
   }
   el.innerHTML='<div class="detail-stats"><div class="sc"><div class="sc-head">'+(m.homeLogo?'<img src="'+m.homeLogo+'" onerror="this.style.display=\'none\'">':'')+m.home+'</div><div class="sc-row"><span class="sc-key">Goals scored</span><span class="sc-g">'+h.gs+'</span></div><div class="sc-row"><span class="sc-key">Goals conceded</span><span class="sc-o">'+h.gc+'</span></div><div class="sc-row"><span class="sc-key">xG</span><span class="sc-c">'+o.hxg.toFixed(2)+'</span></div><div class="form-row">'+fd(h.form)+'</div></div><div class="sc"><div class="sc-head">'+(m.awayLogo?'<img src="'+m.awayLogo+'" onerror="this.style.display=\'none\'">':'')+m.away+'</div><div class="sc-row"><span class="sc-key">Goals scored</span><span class="sc-g">'+a.gs+'</span></div><div class="sc-row"><span class="sc-key">Goals conceded</span><span class="sc-o">'+a.gc+'</span></div><div class="sc-row"><span class="sc-key">xG</span><span class="sc-c">'+o.axg.toFixed(2)+'</span></div><div class="form-row">'+fd(a.form)+'</div></div></div><div class="prob-wrap">'+pb(m.home+' Win',pH,'#00c8ff')+pb('Draw',pD,'#94a3b8')+pb(m.away+' Win',pA,'#f59e0b')+'</div>'+aiHtml;
 }
@@ -1775,7 +1775,7 @@ setInterval(tickPools,8000);
           <div style="width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#00c8ff,#0062ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>
           STRATOS<span style="color:var(--c)">AI</span>
         </div>
-        <div class="footer-tagline">AI-powered sports betting. No KYC. No bank. Just your wallet.</div>
+        <div class="footer-tagline">Data-driven sports prediction markets. No KYC. No bank. Just your wallet.</div>
         <div style="display:flex;gap:8px;margin-top:10px;">
           <a href="https://x.com/stratosaig" target="_blank" style="width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--t3);">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -1788,7 +1788,7 @@ setInterval(tickPools,8000);
       <div class="footer-links">
         <div>
           <div class="footer-col-title">Platform</div>
-          <span class="footer-link" onclick="location.href='history.html'">AI Predictions</span>
+          <span class="footer-link" onclick="location.href='history.html'">Predictions</span>
           <span class="footer-link" onclick="location.href='demo.html'">How It Works</span>
           <span class="footer-link" onclick="window.open('https://stratosai.net','_blank')">Main Site</span>
         </div>
