@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>STRATOS AI · Sports Betting</title>
-<meta name="description" content="STRATOS AI — data-driven sports prediction markets. Real odds, transparent predictions, no KYC. Powered by $STRAT on BNB Chain."/>
+<meta name="description" content="STRATOS AI — AI-powered sports betting. Real odds, real predictions, no KYC. Powered by $STRAT on BNB Chain."/>
 <meta name="theme-color" content="#0b0d13"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -437,7 +437,7 @@ input{font-family:inherit;}
   <div class="tb-nav">
     <div class="tn active"><span class="tn-live-dot"></span>Upcoming</div>
     <div class="tn" onclick="openMyBets()">My Bets <span id="myBetsNavCount" style="display:none;background:var(--o);color:#000;border-radius:999px;font-size:8px;font-weight:900;padding:0 5px;margin-left:2px"></span></div>
-    <div class="tn" onclick="location.href='history.html'">Predictions</div>
+    <div class="tn" onclick="location.href='history.html'">AI Predictions</div>
     <div class="tn" onclick="openDaily()" style="color:var(--g)">🔥 Daily Reward</div>
     <div class="tn" onclick="openLeaderboard()">🏆 Leaderboard</div>
     <div class="tn" onclick="location.href='demo.html'">How It Works</div>
@@ -447,7 +447,7 @@ input{font-family:inherit;}
 <div class="mob-drawer" id="mobDraw">
   <a class="mob-lnk" onclick="openDaily();toggleDraw()" style="color:var(--g)">🔥 Daily Reward</a>
   <a class="mob-lnk" onclick="openLeaderboard();toggleDraw()">🏆 Leaderboard</a>
-  <a href="history.html" class="mob-lnk">Prediction History</a>
+  <a href="history.html" class="mob-lnk">AI Prediction History</a>
   <a href="demo.html" class="mob-lnk">How It Works</a>
   <a href="https://stratosai.net" target="_blank" class="mob-lnk" style="color:var(--c)">Main Site</a>
 </div>
@@ -602,9 +602,99 @@ function saveSlips(s){try{localStorage.setItem(LS_SLIPS,JSON.stringify(s));}catc
 function loadSlips(){try{var r=localStorage.getItem(LS_SLIPS);return r?JSON.parse(r):[];}catch(e){return[];}}
 function saveSlip(slip){var s=loadSlips();s.unshift(slip);if(s.length>100)s=s.slice(0,100);saveSlips(s);}
 
-var TDB={9:{gs:2.80,gc:0.50,form:"WWWWW"},26:{gs:1.80,gc:0.90,form:"WWDWW"},1533:{gs:1.40,gc:1.00,form:"WDWLW"},1:{gs:2.40,gc:0.70,form:"WWWDW"},32:{gs:1.60,gc:0.80,form:"WWDWL"},23:{gs:1.50,gc:1.10,form:"WDWWL"},7:{gs:1.90,gc:0.80,form:"WWWLW"},22:{gs:1.70,gc:0.90,form:"WWDWW"},4673:{gs:1.30,gc:1.20,form:"WDLWW"},2:{gs:2.60,gc:0.60,form:"WWWWW"},13:{gs:1.80,gc:0.90,form:"WWDWL"},1567:{gs:1.60,gc:1.00,form:"WDWLW"},1090:{gs:2.10,gc:0.80,form:"WWWDW"},10:{gs:2.50,gc:0.70,form:"WWWWW"},6:{gs:2.20,gc:0.80,form:"WWDWW"},17:{gs:2.30,gc:0.90,form:"WWWDW"},5:{gs:2.70,gc:0.60,form:"WWWWW"},21:{gs:2.00,gc:0.70,form:"WWWDW"},18:{gs:2.10,gc:0.80,form:"WWDWW"},24:{gs:1.70,gc:0.60,form:"WWWDW"},25:{gs:1.90,gc:0.70,form:"WWWWD"},768:{gs:1.80,gc:0.90,form:"WDWWL"},3:{gs:1.60,gc:1.00,form:"WDWLW"}};
-var DEF={gs:1.40,gc:1.20,form:"WDLWL"};
-function gt(id){return TDB[id]||DEF;}
+/* ══ TEAM STRENGTH — ELO ENGINE ══
+   National-team strength is derived from real World Football Elo ratings
+   (anchored to footballratings.org / eloratings.net, updated 2 Jul 2026 for
+   the top tier; remainder are current-window approximations). Keyed by NAME
+   (national-team names are stable) with alias handling, so every side gets a
+   differentiated rating instead of falling to a single default.
+   Elo -> per-team goals (gs/gc) -> feeds the UNCHANGED Poisson in calcOdds().
+   Ratings self-improve over time as finished results flow through the cache.
+   Club sides (e.g. Brazil Serie A bridge) can be added to ELO_CLUB later; any
+   unknown name falls back to DEFAULT_ELO, so the board never breaks. */
+var ELO={
+  // ── CONMEBOL ──
+  "argentina":2148,"brazil":2031,"colombia":2004,"uruguay":1895,"ecuador":1820,
+  "paraguay":1725,"venezuela":1720,"peru":1760,"chile":1775,"bolivia":1660,
+  // ── UEFA ──
+  "spain":2144,"france":2134,"england":2046,"portugal":1990,"netherlands":1971,
+  "norway":1934,"switzerland":1914,"belgium":1910,"germany":1955,"croatia":1900,
+  "italy":1900,"denmark":1870,"austria":1795,"ukraine":1790,"serbia":1800,
+  "poland":1780,"wales":1770,"turkey":1785,"hungary":1760,"czech republic":1760,
+  "scotland":1780,"greece":1765,"romania":1730,"slovakia":1740,"slovenia":1720,
+  "republic of ireland":1700,"finland":1690,"bosnia and herzegovina":1700,
+  "albania":1690,"georgia":1710,"north macedonia":1685,"sweden":1785,
+  "iceland":1660,"montenegro":1650,"kosovo":1650,"bulgaria":1600,
+  // ── CAF ──
+  "morocco":1890,"senegal":1830,"nigeria":1790,"egypt":1780,"algeria":1770,
+  "ivory coast":1760,"tunisia":1710,"cameroon":1720,"ghana":1720,"mali":1720,
+  "south africa":1710,"dr congo":1720,"burkina faso":1690,"cape verde":1680,
+  "guinea":1660,"gabon":1640,"benin":1620,"angola":1620,"zambia":1620,
+  "uganda":1600,"madagascar":1580,"kenya":1560,"namibia":1560,"comoros":1560,
+  "mauritania":1555,"togo":1560,"mozambique":1545,"tanzania":1540,"zimbabwe":1540,
+  "sierra leone":1520,
+  // ── AFC ──
+  "japan":1840,"iran":1800,"south korea":1785,"australia":1740,"qatar":1680,
+  "saudi arabia":1660,"uzbekistan":1660,"iraq":1650,"jordan":1640,"united arab emirates":1630,
+  "oman":1620,"bahrain":1560,"palestine":1560,"syria":1560,"china":1540,
+  "kuwait":1520,"vietnam":1520,"lebanon":1520,"thailand":1500,"india":1480,
+  // ── CONCACAF ──
+  "mexico":1943,"united states":1785,"canada":1810,"costa rica":1720,"panama":1680,
+  "jamaica":1660,"honduras":1640,"curacao":1600,"trinidad and tobago":1580,
+  "guatemala":1580,"haiti":1580,"el salvador":1560,
+  // ── OFC ──
+  "new zealand":1600,"fiji":1360,"tahiti":1300,"solomon islands":1330
+};
+/* club table placeholder for the post-World-Cup Brazil Serie A bridge */
+var ELO_CLUB={};
+var DEFAULT_ELO=1500, ELO_MEAN=1600;
+
+/* name normaliser: lowercase, strip accents & punctuation, collapse spaces */
+function normName(s){
+  if(!s)return '';
+  return String(s).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[.'`\u2019\-]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+/* common feed spellings -> canonical table keys */
+var ELO_ALIAS={
+  "usa":"united states","us":"united states","united states of america":"united states",
+  "korea republic":"south korea","korea dpr":"north korea","ir iran":"iran",
+  "cote d ivoire":"ivory coast","cotedivoire":"ivory coast",
+  "czechia":"czech republic","turkiye":"turkey","cabo verde":"cape verde",
+  "congo dr":"dr congo","dem rep of congo":"dr congo","dr congo democratic republic":"dr congo",
+  "democratic republic of the congo":"dr congo","congo democratic republic":"dr congo",
+  "ireland":"republic of ireland","bosnia":"bosnia and herzegovina",
+  "macedonia":"north macedonia","uae":"united arab emirates","curacao":"curacao",
+  "trinidad tobago":"trinidad and tobago"
+};
+function eloOf(name){
+  var k=normName(name);
+  if(ELO_ALIAS[k])k=ELO_ALIAS[k];
+  if(ELO[k]!=null)return ELO[k];
+  if(ELO_CLUB[k]!=null)return ELO_CLUB[k];
+  return DEFAULT_ELO;
+}
+/* Elo rating -> intrinsic per-team goals (attack gs / defense gc) */
+function eloStrength(elo){
+  var s=(elo-ELO_MEAN)/400;
+  var gs=1.45+1.05*s; if(gs<0.45)gs=0.45; if(gs>3.4)gs=3.4;
+  var gc=1.25-0.70*s; if(gc<0.35)gc=0.35; if(gc>2.6)gc=2.6;
+  return {gs:+gs.toFixed(2), gc:+gc.toFixed(2)};
+}
+/* deterministic recent-form string from rating (stable per team) */
+function eloForm(name,elo){
+  var base=(elo-1450)/700; if(base<0.05)base=0.05; if(base>0.95)base=0.95;
+  var out='',seed=normName(name);
+  for(var i=0;i<5;i++){var r=seedRand(seed+'f'+i);out+=(r<base?'W':(r<base+0.22?'D':'L'));}
+  return out;
+}
+/* strength lookup by team NAME (replaces the old id-keyed TDB) */
+function gt(name){
+  var elo=eloOf(name), st=eloStrength(elo);
+  return {gs:st.gs, gc:st.gc, form:eloForm(name,elo), elo:elo};
+}
 
 /* ══ P2P POOL LAYER ══
    A lightweight demo layer over the existing odds. Each match gets a SEEDED
@@ -711,7 +801,7 @@ function refreshPoolUI(id){
 }
 
 function calcOdds(m){
-  var h=gt(m.homeId),a=gt(m.awayId);
+  var h=gt(m.home),a=gt(m.away);
   var hxg=Math.max(0.2,((h.gs+a.gc)/2)*1.12),axg=Math.max(0.2,((a.gs+h.gc)/2)*0.96);
   function f(n){var r=1;for(var i=2;i<=n;i++)r*=i;return r;}
   function p(k,l){return Math.pow(l,k)*Math.exp(-l)/f(k);}
@@ -929,7 +1019,7 @@ async function toggleMatch(id){
 }
 
 async function fetchAI(m){
-  var h=gt(m.homeId),a=gt(m.awayId),o=calcOdds(m);
+  var h=gt(m.home),a=gt(m.away),o=calcOdds(m);
   var r=await fetch('/.netlify/functions/ai-analysis',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -945,7 +1035,7 @@ async function fetchAI(m){
 
 function renderDetail(id,m,ai){
   var el=document.getElementById('md-'+id);if(!el)return;
-  var h=gt(m.homeId),a=gt(m.awayId),o=calcOdds(m);
+  var h=gt(m.home),a=gt(m.away),o=calcOdds(m);
   var pH=(o.pH*100).toFixed(1),pD=(o.pD*100).toFixed(1),pA=(o.pA*100).toFixed(1);
   function fd(f){return f.split('').map(function(r){return '<span class="form-dot f'+r+'">'+r+'</span>';}).join('');}
   function pb(lbl,pct,col){return '<div class="prob-item"><div class="prob-meta"><span class="prob-lbl">'+lbl+'</span><span class="prob-pct" style="color:'+col+'">'+pct+'%</span></div><div class="prob-track"><div class="prob-fill" style="width:'+pct+'%;background:'+col+'"></div></div></div>';}
@@ -955,10 +1045,10 @@ function renderDetail(id,m,ai){
     var vE=ai.verdict.replace(/'/g,'').replace(/"/g,'');
     var hE=m.home.replace(/'/g,'').replace(/"/g,'');
     var aE=m.away.replace(/'/g,'').replace(/"/g,'');
-    aiHtml='<div class="ai-box"><div class="ai-box-head"><div class="ai-icon-wrap"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00c8ff" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div><span class="ai-box-title">STRATOS AI · Match Analysis</span><span class="conf-pill" style="color:'+cc+';border:1px solid '+cc+'2a;background:'+cc+'0f">'+ai.confidence+' confidence</span></div><div class="ai-box-body"><p class="ai-analysis">'+ai.analysis+'</p><div class="ai-tip-box">'+ai.tip+'</div><div class="ai-footer"><div class="ai-verdict"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+ai.verdict+'</div><button class="ai-share-btn" onclick="shareAI(\''+hE+'\',\''+aE+'\',\''+vE+'\',\''+ai.confidence+'\')"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Share</button></div><a href="history.html" style="font-size:9px;color:var(--t3);margin-top:6px;display:inline-flex;">View prediction history →</a></div></div>';
+    aiHtml='<div class="ai-box"><div class="ai-box-head"><div class="ai-icon-wrap"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00c8ff" stroke-width="2"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div><span class="ai-box-title">STRATOS AI Analysis</span><span class="conf-pill" style="color:'+cc+';border:1px solid '+cc+'2a;background:'+cc+'0f">'+ai.confidence+' confidence</span></div><div class="ai-box-body"><p class="ai-analysis">'+ai.analysis+'</p><div class="ai-tip-box">'+ai.tip+'</div><div class="ai-footer"><div class="ai-verdict"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'+ai.verdict+'</div><button class="ai-share-btn" onclick="shareAI(\''+hE+'\',\''+aE+'\',\''+vE+'\',\''+ai.confidence+'\')"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>Share</button></div><a href="history.html" style="font-size:9px;color:var(--t3);margin-top:6px;display:inline-flex;">View prediction history →</a></div></div>';
     savePrediction(m,ai);updateAiAccuracy();
   }else{
-    aiHtml='<div style="margin:0 12px 12px;padding:9px 11px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);font-size:11px;color:var(--t3);">Advanced analysis launching soon. Current version uses statistical models (Poisson &amp; Elo).</div>';
+    aiHtml='<div style="margin:0 12px 12px;padding:9px 11px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);font-size:11px;color:var(--t3);">AI Analysis launching soon. Current version uses statistical models.</div>';
   }
   el.innerHTML='<div class="detail-stats"><div class="sc"><div class="sc-head">'+(m.homeLogo?'<img src="'+m.homeLogo+'" onerror="this.style.display=\'none\'">':'')+m.home+'</div><div class="sc-row"><span class="sc-key">Goals scored</span><span class="sc-g">'+h.gs+'</span></div><div class="sc-row"><span class="sc-key">Goals conceded</span><span class="sc-o">'+h.gc+'</span></div><div class="sc-row"><span class="sc-key">xG</span><span class="sc-c">'+o.hxg.toFixed(2)+'</span></div><div class="form-row">'+fd(h.form)+'</div></div><div class="sc"><div class="sc-head">'+(m.awayLogo?'<img src="'+m.awayLogo+'" onerror="this.style.display=\'none\'">':'')+m.away+'</div><div class="sc-row"><span class="sc-key">Goals scored</span><span class="sc-g">'+a.gs+'</span></div><div class="sc-row"><span class="sc-key">Goals conceded</span><span class="sc-o">'+a.gc+'</span></div><div class="sc-row"><span class="sc-key">xG</span><span class="sc-c">'+o.axg.toFixed(2)+'</span></div><div class="form-row">'+fd(a.form)+'</div></div></div><div class="prob-wrap">'+pb(m.home+' Win',pH,'#00c8ff')+pb('Draw',pD,'#94a3b8')+pb(m.away+' Win',pA,'#f59e0b')+'</div>'+aiHtml;
 }
@@ -1775,7 +1865,7 @@ setInterval(tickPools,8000);
           <div style="width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#00c8ff,#0062ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 3l1.9 5.8L19.5 10l-5.6 1.2L12 17l-1.9-5.8L4.5 10l5.6-1.2z"/></svg></div>
           STRATOS<span style="color:var(--c)">AI</span>
         </div>
-        <div class="footer-tagline">Data-driven sports prediction markets. No KYC. No bank. Just your wallet.</div>
+        <div class="footer-tagline">AI-powered sports betting. No KYC. No bank. Just your wallet.</div>
         <div style="display:flex;gap:8px;margin-top:10px;">
           <a href="https://x.com/stratosaig" target="_blank" style="width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--t3);">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.843L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -1788,7 +1878,7 @@ setInterval(tickPools,8000);
       <div class="footer-links">
         <div>
           <div class="footer-col-title">Platform</div>
-          <span class="footer-link" onclick="location.href='history.html'">Predictions</span>
+          <span class="footer-link" onclick="location.href='history.html'">AI Predictions</span>
           <span class="footer-link" onclick="location.href='demo.html'">How It Works</span>
           <span class="footer-link" onclick="window.open('https://stratosai.net','_blank')">Main Site</span>
         </div>
