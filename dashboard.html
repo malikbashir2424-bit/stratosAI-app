@@ -42,7 +42,7 @@ h1{font-size:22px;font-weight:800;letter-spacing:1px;}
   <div class="section">Community (Airdrop)</div>
   <div class="grid" id="community"><div class="loading">Loading…</div></div>
 
-  <div class="section">AI Engine</div>
+  <div class="section">Model Engine</div>
   <div class="grid" id="ai"><div class="loading">Loading…</div></div>
 
   <div class="foot">Data updates in real time from the STRATOS AI platform · stratosai.bet</div>
@@ -75,7 +75,7 @@ async function load(){
       card(fmt(d.wallets_connected),'Wallets Connected','On-chain users','#a78bfa')+
       card(fmt(d.total_bets),'Bets Placed','Demo + live','#f59e0b');
     document.getElementById('ai').innerHTML=
-      card(fmt(d.prediction_views),'AI Predictions Viewed','User engagement','#00c8ff')+
+      card(fmt(d.prediction_views),'Predictions Viewed','User engagement','#00c8ff')+
       card(fmt(d.total_visits),'Total Page Views','All sessions','#94a3b8')+
       card(fmt(d.events_24h),'Events (24h)','Platform activity','#00e87a');
   }catch(e){
@@ -87,11 +87,16 @@ async function load(){
     var r2=await fetch(BOT_URL+'/rest/v1/users?select=telegram_id',{headers:Object.assign({'Prefer':'count=exact','Range':'0-0'},BH)});
     var total=r2.headers.get('content-range');
     var members=total?total.split('/')[1]:'—';
-    var r3=await fetch(BOT_URL+'/rest/v1/users?select=points.sum()',{headers:BH});
-    var pts=0;try{pts=(await r3.json())[0].sum||0;}catch(e){}
+    // Sum points client-side (aggregate select is unreliable with the anon role).
+    var pts=0;
+    try{
+      var r3=await fetch(BOT_URL+'/rest/v1/users?select=points',{headers:BH});
+      var rows=await r3.json();
+      if(Array.isArray(rows)){pts=rows.reduce(function(a,u){return a+(u.points||0);},0);}
+    }catch(e){}
     document.getElementById('community').innerHTML=
       card(fmt(parseInt(members)||0),'Airdrop Members','Telegram bot','#00e87a')+
-      card(fmt(pts),'Points Distributed','$STRAT rewards','#a78bfa');
+      card(fmt(pts),'Points Earned','Community rewards','#a78bfa');
   }catch(e){
     document.getElementById('community').innerHTML='<div class="err">Community data unavailable.</div>';
   }
